@@ -159,28 +159,31 @@ export async function GET() {
 
     if (Array.isArray(standings.children)) {
       for (const grupo of standings.children) {
-        const times = (grupo.standings?.entries || []).map((entry: any) => {
-          const stats = entry.stats || [];
-          const getStat = (name: string) =>
-            stats.find((s: any) => s.name === name)?.value ?? 0;
-          const logoTime: string =
-            entry.team?.logos?.[0]?.href || entry.team?.logo || "";
-          return {
-            posicao: entry.team?.rank || 0,
-            time: entry.team?.displayName || entry.team?.name || "?",
-            bandeira: getBandeira(entry.team?.displayName || ""),
-            logo: logoTime,
-            jogos: getStat("gamesPlayed"),
-            vitorias: getStat("wins"),
-            empates: getStat("ties"),
-            derrotas: getStat("losses"),
-            gp: getStat("pointsFor"),
-            gc: getStat("pointsAgainst"),
-            sg: getStat("pointDifferential"),
-            pontos: getStat("points"),
-            grupo: grupo.name || grupo.abbreviation || "Grupo",
-          };
-        });
+        const times = (grupo.standings?.entries || [])
+          .map((entry: any) => {
+            const stats = entry.stats || [];
+            const getStat = (name: string) =>
+              stats.find((s: any) => s.name === name)?.value ?? 0;
+            const logoTime: string =
+              entry.team?.logos?.[0]?.href || entry.team?.logo || "";
+            return {
+              posicao: 0,
+              time: entry.team?.displayName || entry.team?.name || "?",
+              bandeira: getBandeira(entry.team?.displayName || ""),
+              logo: logoTime,
+              jogos: getStat("gamesPlayed"),
+              vitorias: getStat("wins"),
+              empates: getStat("ties"),
+              derrotas: getStat("losses"),
+              gp: getStat("pointsFor"),
+              gc: getStat("pointsAgainst"),
+              sg: getStat("pointDifferential"),
+              pontos: getStat("points"),
+              grupo: grupo.name || grupo.abbreviation || "Grupo",
+            };
+          })
+          .sort((a: any, b: any) => b.pontos - a.pontos || b.sg - a.sg)
+          .map((time: any, idx: number) => ({ ...time, posicao: idx + 1 }));
         if (times.length > 0) grupos.push(times);
       }
     }
