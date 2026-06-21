@@ -142,10 +142,14 @@ export default function JogosPage() {
         </span>
       </div>
 
-      <Tabs defaultValue="jogos">
-        <TabsList className="bg-gray-900 border border-gray-800">
-          <TabsTrigger value="jogos">📅 Jogos</TabsTrigger>
-          <TabsTrigger value="grupos">📊 Grupos</TabsTrigger>
+      <Tabs defaultValue="jogos" className="w-full">
+        <TabsList className="bg-gray-900 border border-gray-800 w-full">
+          <TabsTrigger value="jogos" className="flex-1">
+            📅 Jogos
+          </TabsTrigger>
+          <TabsTrigger value="grupos" className="flex-1">
+            📊 Grupos
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="jogos" className="space-y-6 mt-4">
