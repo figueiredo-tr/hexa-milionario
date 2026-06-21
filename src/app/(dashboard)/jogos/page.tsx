@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Jogo = {
   id: number;
@@ -51,9 +50,6 @@ function TeamFlag({
         className="inline w-6 h-6 object-contain"
         onError={(e) => {
           (e.target as HTMLImageElement).style.display = "none";
-          (e.target as HTMLImageElement).nextElementSibling?.classList.remove(
-            "hidden",
-          );
         }}
       />
     );
@@ -66,6 +62,7 @@ export default function JogosPage() {
   const [grupos, setGrupos] = useState<TimeGrupo[][]>([]);
   const [loading, setLoading] = useState(true);
   const [fonte, setFonte] = useState("");
+  const [aba, setAba] = useState<"jogos" | "grupos">("jogos");
 
   async function fetchJogos() {
     const res = await fetch("/api/jogos");
@@ -142,17 +139,31 @@ export default function JogosPage() {
         </span>
       </div>
 
-      <Tabs defaultValue="jogos" className="w-full">
-        <TabsList className="bg-gray-900 border border-gray-800 w-full">
-          <TabsTrigger value="jogos" className="flex-1">
-            📅 Jogos
-          </TabsTrigger>
-          <TabsTrigger value="grupos" className="flex-1">
-            📊 Grupos
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setAba("jogos")}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            aba === "jogos"
+              ? "bg-green-600 text-white"
+              : "bg-gray-800 text-gray-400 hover:text-white"
+          }`}
+        >
+          📅 Jogos
+        </button>
+        <button
+          onClick={() => setAba("grupos")}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            aba === "grupos"
+              ? "bg-green-600 text-white"
+              : "bg-gray-800 text-gray-400 hover:text-white"
+          }`}
+        >
+          📊 Grupos
+        </button>
+      </div>
 
-        <TabsContent value="jogos" className="space-y-6 mt-4">
+      {aba === "jogos" && (
+        <div className="space-y-6">
           {aoVivo.length > 0 && (
             <div>
               <h2 className="text-red-400 font-semibold mb-3">🔴 Ao Vivo</h2>
@@ -192,9 +203,11 @@ export default function JogosPage() {
               Nenhum jogo hoje. Confira a tabela de grupos! 📊
             </p>
           )}
-        </TabsContent>
+        </div>
+      )}
 
-        <TabsContent value="grupos" className="mt-4">
+      {aba === "grupos" && (
+        <div>
           {grupos.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {grupos.map((grupo, i) => (
@@ -267,8 +280,8 @@ export default function JogosPage() {
               Tabela de grupos ainda não disponível.
             </p>
           )}
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   );
 }
