@@ -85,12 +85,17 @@ async function fetchESPN(url: string) {
   return res.json();
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const dataParam = searchParams.get("data");
+
+    const scoreboardUrl = dataParam
+      ? `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${dataParam}`
+      : `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard`;
+
     const [scoreboard, standings] = await Promise.all([
-      fetchESPN(
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard",
-      ),
+      fetchESPN(scoreboardUrl),
       fetchESPN(
         "https://site.api.espn.com/apis/v2/sports/soccer/fifa.world/standings",
       ),
@@ -133,8 +138,6 @@ export async function GET() {
       const homeName = home?.team?.displayName || home?.team?.name || "Time A";
       const awayName = away?.team?.displayName || away?.team?.name || "Time B";
       const grupo = evento.season?.slug || comp?.series?.summary || "Copa 2026";
-
-      // Pega a logo da ESPN (array de logos, pega a primeira)
       const logoCasa: string =
         home?.team?.logos?.[0]?.href || home?.team?.logo || "";
       const logoVisitante: string =
@@ -189,14 +192,8 @@ export async function GET() {
     }
 
     return NextResponse.json(
-      {
-        jogos,
-        grupos,
-        fonte: "espn",
-      },
-      {
-        headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate" },
-      },
+      { jogos, grupos, fonte: "espn" },
+      { headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate" } },
     );
   } catch (err) {
     console.error("ESPN API erro:", err);

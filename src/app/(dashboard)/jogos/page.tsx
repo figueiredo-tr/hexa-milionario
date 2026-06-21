@@ -57,27 +57,57 @@ function TeamFlag({
   return <span>{bandeira}</span>;
 }
 
+function formatDateParam(date: Date): string {
+  return date.toISOString().slice(0, 10).replace(/-/g, "");
+}
+
+function formatDateLabel(date: Date): string {
+  const hoje = new Date();
+  const amanha = new Date();
+  amanha.setDate(hoje.getDate() + 1);
+  const ontem = new Date();
+  ontem.setDate(hoje.getDate() - 1);
+  const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
+  if (sameDay(date, hoje)) return "Hoje";
+  if (sameDay(date, amanha)) return "Amanhã";
+  if (sameDay(date, ontem)) return "Ontem";
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    weekday: "short",
+  });
+}
+
 export default function JogosPage() {
   const [jogos, setJogos] = useState<Jogo[]>([]);
   const [grupos, setGrupos] = useState<TimeGrupo[][]>([]);
   const [loading, setLoading] = useState(true);
   const [fonte, setFonte] = useState("");
   const [aba, setAba] = useState<"jogos" | "grupos">("jogos");
+  const [dataSelecionada, setDataSelecionada] = useState<Date>(new Date());
 
-  async function fetchJogos() {
-    const res = await fetch("/api/jogos");
-    const data = await res.json();
-    setJogos(data.jogos || []);
-    setGrupos(data.grupos || []);
-    setFonte(data.fonte);
+  async function fetchJogos(data: Date) {
+    setLoading(true);
+    const param = formatDateParam(data);
+    const res = await fetch(`/api/jogos?data=${param}`);
+    const json = await res.json();
+    setJogos(json.jogos || []);
+    setGrupos(json.grupos || []);
+    setFonte(json.fonte);
     setLoading(false);
   }
 
   useEffect(() => {
-    fetchJogos();
-    const interval = setInterval(fetchJogos, 60000);
+    fetchJogos(dataSelecionada);
+    const interval = setInterval(() => fetchJogos(dataSelecionada), 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [dataSelecionada]);
+
+  function mudarData(dias: number) {
+    const nova = new Date(dataSelecionada);
+    nova.setDate(nova.getDate() + dias);
+    setDataSelecionada(nova);
+  }
 
   const aoVivo = jogos.filter((j) => j.status === "ao vivo");
   const emBreve = jogos.filter((j) => j.status === "em breve");
@@ -125,11 +155,6 @@ export default function JogosPage() {
     );
   }
 
-  if (loading)
-    return (
-      <div className="text-center text-gray-400 py-12">Carregando jogos...</div>
-    );
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -163,47 +188,83 @@ export default function JogosPage() {
       </div>
 
       {aba === "jogos" && (
-        <div className="space-y-6">
-          {aoVivo.length > 0 && (
-            <div>
-              <h2 className="text-red-400 font-semibold mb-3">🔴 Ao Vivo</h2>
-              <div className="space-y-3">
-                {aoVivo.map((j) => (
-                  <JogoCard key={j.id} jogo={j} />
-                ))}
-              </div>
+        <>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => mudarData(-1)}
+              className="px-3 py-1 rounded-md bg-gray-800 text-gray-300 hover:text-white text-sm"
+            >
+              ← Anterior
+            </button>
+            <span className="text-white font-medium text-sm min-w-[80px] text-center">
+              {formatDateLabel(dataSelecionada)}
+            </span>
+            <button
+              onClick={() => mudarData(1)}
+              className="px-3 py-1 rounded-md bg-gray-800 text-gray-300 hover:text-white text-sm"
+            >
+              Próximo →
+            </button>
+            {dataSelecionada.toDateString() !== new Date().toDateString() && (
+              <button
+                onClick={() => setDataSelecionada(new Date())}
+                className="px-3 py-1 rounded-md bg-gray-700 text-gray-300 hover:text-white text-xs"
+              >
+                Hoje
+              </button>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="text-center text-gray-400 py-12">
+              Carregando jogos...
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {aoVivo.length > 0 && (
+                <div>
+                  <h2 className="text-red-400 font-semibold mb-3">
+                    🔴 Ao Vivo
+                  </h2>
+                  <div className="space-y-3">
+                    {aoVivo.map((j) => (
+                      <JogoCard key={j.id} jogo={j} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {emBreve.length > 0 && (
+                <div>
+                  <h2 className="text-yellow-400 font-semibold mb-3">
+                    🕐 Em Breve
+                  </h2>
+                  <div className="space-y-3">
+                    {emBreve.map((j) => (
+                      <JogoCard key={j.id} jogo={j} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {encerrados.length > 0 && (
+                <div>
+                  <h2 className="text-gray-400 font-semibold mb-3">
+                    ✅ Encerrados
+                  </h2>
+                  <div className="space-y-3">
+                    {encerrados.map((j) => (
+                      <JogoCard key={j.id} jogo={j} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {jogos.length === 0 && (
+                <p className="text-gray-400 text-center py-12">
+                  Nenhum jogo em {formatDateLabel(dataSelecionada)}. 📊
+                </p>
+              )}
             </div>
           )}
-          {emBreve.length > 0 && (
-            <div>
-              <h2 className="text-yellow-400 font-semibold mb-3">
-                🕐 Em Breve
-              </h2>
-              <div className="space-y-3">
-                {emBreve.map((j) => (
-                  <JogoCard key={j.id} jogo={j} />
-                ))}
-              </div>
-            </div>
-          )}
-          {encerrados.length > 0 && (
-            <div>
-              <h2 className="text-gray-400 font-semibold mb-3">
-                ✅ Encerrados
-              </h2>
-              <div className="space-y-3">
-                {encerrados.map((j) => (
-                  <JogoCard key={j.id} jogo={j} />
-                ))}
-              </div>
-            </div>
-          )}
-          {jogos.length === 0 && (
-            <p className="text-gray-400 text-center py-12">
-              Nenhum jogo hoje. Confira a tabela de grupos! 📊
-            </p>
-          )}
-        </div>
+        </>
       )}
 
       {aba === "grupos" && (
