@@ -87,7 +87,6 @@ async function fetchESPN(url: string) {
 
 export async function GET() {
   try {
-    // ESPN API não oficial — Copa do Mundo 2026 (league slug: fifa.world)
     const [scoreboard, standings] = await Promise.all([
       fetchESPN(
         "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard",
@@ -97,7 +96,6 @@ export async function GET() {
       ),
     ]);
 
-    // Processar jogos
     const jogos = (scoreboard.events || []).map((evento: any, i: number) => {
       const comp = evento.competitions?.[0];
       const home = comp?.competitors?.find((c: any) => c.homeAway === "home");
@@ -136,6 +134,12 @@ export async function GET() {
       const awayName = away?.team?.displayName || away?.team?.name || "Time B";
       const grupo = evento.season?.slug || comp?.series?.summary || "Copa 2026";
 
+      // Pega a logo da ESPN (array de logos, pega a primeira)
+      const logoCasa: string =
+        home?.team?.logos?.[0]?.href || home?.team?.logo || "";
+      const logoVisitante: string =
+        away?.team?.logos?.[0]?.href || away?.team?.logo || "";
+
       return {
         id: i + 1,
         casa: homeName,
@@ -145,13 +149,13 @@ export async function GET() {
         tempo,
         bandeiraCasa: getBandeira(homeName),
         bandeiraVisitante: getBandeira(awayName),
+        logoCasa,
+        logoVisitante,
         grupo,
       };
     });
 
-    // Processar tabela de grupos
     const grupos: any[][] = [];
-    const entries = standings.children || standings.standings?.entries || [];
 
     if (Array.isArray(standings.children)) {
       for (const grupo of standings.children) {
@@ -159,10 +163,13 @@ export async function GET() {
           const stats = entry.stats || [];
           const getStat = (name: string) =>
             stats.find((s: any) => s.name === name)?.value ?? 0;
+          const logoTime: string =
+            entry.team?.logos?.[0]?.href || entry.team?.logo || "";
           return {
             posicao: entry.team?.rank || 0,
             time: entry.team?.displayName || entry.team?.name || "?",
             bandeira: getBandeira(entry.team?.displayName || ""),
+            logo: logoTime,
             jogos: getStat("gamesPlayed"),
             vitorias: getStat("wins"),
             empates: getStat("ties"),
