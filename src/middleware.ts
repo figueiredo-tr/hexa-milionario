@@ -45,6 +45,9 @@ export async function middleware(request: NextRequest) {
   if (!user && pathname.startsWith("/ranking")) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
+  if (!user && pathname.startsWith("/calculadora")) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 
   return supabaseResponse;
 }

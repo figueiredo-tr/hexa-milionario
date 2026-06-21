@@ -10,6 +10,7 @@ const links = [
   { href: "/escalada", label: "📈 Escalada" },
   { href: "/jogos", label: "⚽ Jogos" },
   { href: "/ranking", label: "🏆 Ranking" },
+  { href: "/calculadora", label: "🧮 Calc" },
 ];
 
 export function Navbar() {

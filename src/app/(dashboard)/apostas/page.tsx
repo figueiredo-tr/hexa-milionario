@@ -21,6 +21,7 @@ type Aposta = {
 export default function ApostasPage() {
   const [apostas, setApostas] = useState<Aposta[]>([]);
   const [loading, setLoading] = useState(false);
+  const [filtro, setFiltro] = useState("todos");
   const [form, setForm] = useState({
     partida: "",
     descricao: "",
@@ -93,6 +94,41 @@ export default function ApostasPage() {
     await loadApostas();
   }
 
+  function exportCSV() {
+    const headers = [
+      "Data",
+      "Partida",
+      "Descrição",
+      "Odd",
+      "Stake (R$)",
+      "Retorno (R$)",
+      "Resultado",
+    ];
+    const rows = apostasFiltradas.map((a) => [
+      new Date(a.created_at).toLocaleDateString("pt-BR"),
+      a.partida,
+      a.descricao,
+      a.odd,
+      a.stake,
+      a.retorno?.toFixed(2),
+      a.resultado,
+    ]);
+    const csv = [headers, ...rows].map((r) => r.join(";")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `apostas_hexa_milionario_${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const apostasFiltradas = apostas.filter(
+    (a) => filtro === "todos" || a.resultado === filtro,
+  );
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-white">🎯 Minhas Apostas</h1>
@@ -151,6 +187,15 @@ export default function ApostasPage() {
                 required
               />
             </div>
+            {form.odd && form.stake && (
+              <div className="md:col-span-2 bg-gray-800 rounded-lg p-3 flex justify-between">
+                <span className="text-gray-400">Retorno potencial:</span>
+                <span className="text-green-400 font-bold">
+                  R${" "}
+                  {(parseFloat(form.stake) * parseFloat(form.odd)).toFixed(2)}
+                </span>
+              </div>
+            )}
             <Button
               type="submit"
               className="md:col-span-2 bg-green-600 hover:bg-green-700"
@@ -162,8 +207,40 @@ export default function ApostasPage() {
         </CardContent>
       </Card>
 
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          {[
+            { key: "todos", label: "Todos" },
+            { key: "pendente", label: "⏳ Pendentes" },
+            { key: "ganhou", label: "✅ Ganhas" },
+            { key: "perdeu", label: "❌ Perdidas" },
+          ].map((f) => (
+            <Button
+              key={f.key}
+              size="sm"
+              className={
+                filtro === f.key
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-gray-800 hover:bg-gray-700"
+              }
+              onClick={() => setFiltro(f.key)}
+            >
+              {f.label}
+            </Button>
+          ))}
+        </div>
+        <Button
+          onClick={exportCSV}
+          variant="outline"
+          size="sm"
+          className="border-green-600 text-green-400 hover:bg-green-600 hover:text-white"
+        >
+          📥 Exportar CSV
+        </Button>
+      </div>
+
       <div className="space-y-3">
-        {apostas.map((aposta) => (
+        {apostasFiltradas.map((aposta) => (
           <Card key={aposta.id} className="bg-gray-900 border-gray-800">
             <CardContent className="pt-4">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -171,6 +248,7 @@ export default function ApostasPage() {
                   <p className="text-white font-medium">{aposta.partida}</p>
                   <p className="text-gray-400 text-sm">{aposta.descricao}</p>
                   <p className="text-gray-500 text-xs mt-1">
+                    {new Date(aposta.created_at).toLocaleDateString("pt-BR")} •
                     Odd: <span className="text-yellow-400">{aposta.odd}</span> •
                     Stake: <span className="text-white">R$ {aposta.stake}</span>{" "}
                     • Retorno:{" "}
@@ -229,9 +307,9 @@ export default function ApostasPage() {
             </CardContent>
           </Card>
         ))}
-        {apostas.length === 0 && (
+        {apostasFiltradas.length === 0 && (
           <p className="text-gray-400 text-center py-12">
-            Nenhuma aposta ainda. Adicione sua primeira! 🎯
+            Nenhuma aposta encontrada. 🎯
           </p>
         )}
       </div>
