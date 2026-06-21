@@ -13,6 +13,8 @@ type Jogo = {
   tempo: string;
   bandeiraCasa: string;
   bandeiraVisitante: string;
+  logoCasa: string;
+  logoVisitante: string;
   grupo: string;
 };
 
@@ -20,6 +22,7 @@ type TimeGrupo = {
   posicao: number;
   time: string;
   bandeira: string;
+  logo: string;
   jogos: number;
   vitorias: number;
   empates: number;
@@ -30,6 +33,33 @@ type TimeGrupo = {
   pontos: number;
   grupo: string;
 };
+
+function TeamFlag({
+  logo,
+  bandeira,
+  alt,
+}: {
+  logo: string;
+  bandeira: string;
+  alt: string;
+}) {
+  if (logo) {
+    return (
+      <img
+        src={logo}
+        alt={alt}
+        className="inline w-6 h-6 object-contain"
+        onError={(e) => {
+          (e.target as HTMLImageElement).style.display = "none";
+          (e.target as HTMLImageElement).nextElementSibling?.classList.remove(
+            "hidden",
+          );
+        }}
+      />
+    );
+  }
+  return <span>{bandeira}</span>;
+}
 
 export default function JogosPage() {
   const [jogos, setJogos] = useState<Jogo[]>([]);
@@ -66,19 +96,25 @@ export default function JogosPage() {
       <Card className="bg-gray-900 border-gray-800">
         <CardContent className="pt-4">
           <div className="flex items-center justify-between">
-            <div className="flex-1 text-right">
-              <p className="text-white font-medium">
-                {jogo.bandeiraCasa} {jogo.casa}
-              </p>
+            <div className="flex-1 text-right flex items-center justify-end gap-2">
+              <p className="text-white font-medium">{jogo.casa}</p>
+              <TeamFlag
+                logo={jogo.logoCasa}
+                bandeira={jogo.bandeiraCasa}
+                alt={jogo.casa}
+              />
             </div>
             <div className="mx-4 text-center min-w-[80px]">
               <p className="text-yellow-400 font-bold text-lg">{jogo.placar}</p>
               <p className="text-gray-400 text-xs">{jogo.tempo}</p>
             </div>
-            <div className="flex-1 text-left">
-              <p className="text-white font-medium">
-                {jogo.visitante} {jogo.bandeiraVisitante}
-              </p>
+            <div className="flex-1 text-left flex items-center gap-2">
+              <TeamFlag
+                logo={jogo.logoVisitante}
+                bandeira={jogo.bandeiraVisitante}
+                alt={jogo.visitante}
+              />
+              <p className="text-white font-medium">{jogo.visitante}</p>
             </div>
           </div>
           <div className="flex items-center justify-between mt-3">
@@ -187,8 +223,17 @@ export default function JogosPage() {
                             className={`border-b border-gray-800 ${j < 2 ? "text-green-400" : "text-gray-300"}`}
                           >
                             <td className="py-1">{time.posicao}</td>
-                            <td className="py-1">
-                              {time.bandeira} {time.time}
+                            <td className="py-1 flex items-center gap-1">
+                              {time.logo ? (
+                                <img
+                                  src={time.logo}
+                                  alt={time.time}
+                                  className="w-4 h-4 object-contain"
+                                />
+                              ) : (
+                                <span>{time.bandeira}</span>
+                              )}
+                              {time.time}
                             </td>
                             <td className="text-center py-1">{time.jogos}</td>
                             <td className="text-center py-1">
