@@ -101,6 +101,8 @@ export async function GET(request: Request) {
       ),
     ]);
 
+    const fase = scoreboard.leagues?.[0]?.season?.type?.name || "Group Stage";
+
     const jogos = (scoreboard.events || []).map((evento: any, i: number) => {
       const comp = evento.competitions?.[0];
       const home = comp?.competitors?.find((c: any) => c.homeAway === "home");
@@ -137,7 +139,7 @@ export async function GET(request: Request) {
 
       const homeName = home?.team?.displayName || home?.team?.name || "Time A";
       const awayName = away?.team?.displayName || away?.team?.name || "Time B";
-      const grupo = evento.season?.slug || comp?.series?.summary || "Copa 2026";
+      const grupo = comp?.altGameNote || evento.season?.slug || "Copa 2026";
       const logoCasa: string =
         home?.team?.logos?.[0]?.href || home?.team?.logo || "";
       const logoVisitante: string =
@@ -192,7 +194,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(
-      { jogos, grupos, fonte: "espn" },
+      { jogos, grupos, fonte: "espn", fase },
       { headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate" } },
     );
   } catch (err) {
@@ -201,6 +203,7 @@ export async function GET(request: Request) {
       jogos: [],
       grupos: [],
       fonte: "erro",
+      fase: "",
       erro: String(err),
     });
   }

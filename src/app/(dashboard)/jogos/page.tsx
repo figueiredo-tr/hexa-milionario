@@ -83,6 +83,7 @@ export default function JogosPage() {
   const [grupos, setGrupos] = useState<TimeGrupo[][]>([]);
   const [loading, setLoading] = useState(true);
   const [fonte, setFonte] = useState("");
+  const [fase, setFase] = useState("");
   const [aba, setAba] = useState<"jogos" | "grupos">("jogos");
   const [dataSelecionada, setDataSelecionada] = useState<Date>(new Date());
 
@@ -94,6 +95,7 @@ export default function JogosPage() {
     setJogos(json.jogos || []);
     setGrupos(json.grupos || []);
     setFonte(json.fonte);
+    setFase(json.fase || "");
     setLoading(false);
   }
 
@@ -157,8 +159,17 @@ export default function JogosPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">⚽ Copa do Mundo 2026</h1>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-white">
+            ⚽ Copa do Mundo 2026
+          </h1>
+          {fase && (
+            <span className="text-xs bg-green-900 text-green-300 px-2 py-1 rounded-full">
+              {fase}
+            </span>
+          )}
+        </div>
         <span className="text-gray-500 text-xs">
           Fonte: {fonte} • Atualiza a cada 60s
         </span>
