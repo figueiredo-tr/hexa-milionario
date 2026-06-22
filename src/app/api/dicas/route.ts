@@ -10,96 +10,107 @@ async function buscarOddsReais() {
       { next: { revalidate: 300 } },
     );
     if (!res.ok) return [];
-    const data = await res.json();
-    return data;
+    return await res.json();
   } catch {
     return [];
   }
 }
 
-function formatarOddsParaPrompt(oddsData: any[]) {
-  if (!oddsData.length) return "Nenhuma odd disponível no momento.";
+function calcularOddMedia(outcomes: any[]) {
+  if (!outcomes?.length) return 0;
+  return parseFloat(
+    (
+      outcomes.reduce((s: number, o: any) => s + o.price, 0) / outcomes.length
+    ).toFixed(2),
+  );
+}
 
-  return oddsData
-    .slice(0, 10)
-    .map((jogo: any) => {
-      const bookmaker = jogo.bookmakers?.[0];
-      if (!bookmaker) return null;
+function formatarJogos(oddsData: any[]) {
+  return oddsData.slice(0, 12).map((jogo: any) => {
+    const bookmakers = jogo.bookmakers || [];
+    const h2hMercado = bookmakers.flatMap((b: any) =>
+      b.markets.filter((m: any) => m.key === "h2h"),
+    )[0];
+    const totalsMercado = bookmakers.flatMap((b: any) =>
+      b.markets.filter((m: any) => m.key === "totals"),
+    )[0];
+    const bttsMercado = bookmakers.flatMap((b: any) =>
+      b.markets.filter((m: any) => m.key === "btts"),
+    )[0];
 
-      const mercados = bookmaker.markets
-        .map((m: any) => {
-          if (m.key === "h2h") {
-            const [home, away, draw] = m.outcomes;
-            return `Resultado: ${home?.name} vence (${home?.price}) | Empate (${draw?.price}) | ${away?.name} vence (${away?.price})`;
-          }
-          if (m.key === "totals") {
-            return m.outcomes
-              .map((o: any) => `Gols ${o.name} ${o.point} (${o.price})`)
-              .join(" | ");
-          }
-          if (m.key === "btts") {
-            return m.outcomes
-              .map((o: any) => `Ambas marcam ${o.name} (${o.price})`)
-              .join(" | ");
-          }
-          return null;
-        })
-        .filter(Boolean)
-        .join("\n    ");
+    const home = h2hMercado?.outcomes?.find(
+      (o: any) => o.name === jogo.home_team,
+    );
+    const away = h2hMercado?.outcomes?.find(
+      (o: any) => o.name === jogo.away_team,
+    );
+    const draw = h2hMercado?.outcomes?.find((o: any) => o.name === "Draw");
 
-      return `
-Jogo: ${jogo.home_team} x ${jogo.away_team}
-Data: ${new Date(jogo.commence_time).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
-Odds (${bookmaker.title}):
-    ${mercados}`;
-    })
-    .filter(Boolean)
-    .join("\n---");
+    const totals =
+      totalsMercado?.outcomes?.map((o: any) => ({
+        selecao: `${o.name} ${o.point} gols`,
+        odd: o.price,
+      })) || [];
+
+    const btts =
+      bttsMercado?.outcomes?.map((o: any) => ({
+        selecao: `Ambas marcam: ${o.name}`,
+        odd: o.price,
+      })) || [];
+
+    return {
+      partida: `${jogo.home_team} x ${jogo.away_team}`,
+      data: new Date(jogo.commence_time).toLocaleString("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+      }),
+      odds_resultado: {
+        casa: { selecao: `${jogo.home_team} vence`, odd: home?.price || 0 },
+        empate: { selecao: "Empate", odd: draw?.price || 0 },
+        visitante: {
+          selecao: `${jogo.away_team} vence`,
+          odd: away?.price || 0,
+        },
+      },
+      odds_gols: totals,
+      odds_btts: btts,
+    };
+  });
 }
 
 export async function POST(request: Request) {
   try {
     const { jogos } = await request.json();
-
-    // Busca odds reais
     const oddsReais = await buscarOddsReais();
-    const oddsFormatadas = formatarOddsParaPrompt(oddsReais);
-    const temOddsReais = oddsReais.length > 0;
+    const temOdds = oddsReais.length > 0;
+    const jogosFormatados = temOdds ? formatarJogos(oddsReais) : jogos;
 
-    const prompt = `Você é um tipster profissional especializado na Copa do Mundo 2026.
+    const prompt = `Você é um tipster profissional da Copa do Mundo 2026.
 
 ${
-  temOddsReais
-    ? `ODDS REAIS DA COPA DO MUNDO 2026 (use EXATAMENTE essas odds):
-${oddsFormatadas}`
-    : `Jogos disponíveis hoje (sem odds reais disponíveis):
-${JSON.stringify(jogos)}`
+  temOdds
+    ? `DADOS REAIS COM ODDS (use EXATAMENTE esses valores):
+${JSON.stringify(jogosFormatados, null, 2)}`
+    : `Jogos disponíveis: ${JSON.stringify(jogos)}`
 }
 
-Gere 3 dicas profissionais usando as odds acima. REGRAS CRÍTICAS:
-1. Use EXATAMENTE as odds fornecidas acima — não invente valores
-2. Cada dica deve ter apenas UMA partida
-3. Os mercados dentro de uma dica NÃO podem ser contraditórios
-4. Mercados válidos para combinar: resultado + gols, resultado + ambas marcam, gols + ambas marcam
-
-Responda APENAS com JSON puro sem markdown:
+Gere 3 dicas usando APENAS as odds acima. Responda SOMENTE com JSON puro sem markdown:
 {
   "safe": {
     "partida": "Time A x Time B",
     "mercados": [
       { "mercado": "Resultado (1X2)", "selecao": "Time A vence", "odd": 1.30 },
-      { "mercado": "Total de gols", "selecao": "Mais de 1.5", "odd": 1.12 }
+      { "mercado": "Total de gols", "selecao": "Mais de 1.5 gols", "odd": 1.12 }
     ],
     "odd_combinada": 1.46,
-    "analise": "Análise técnica de 2 linhas com argumentos sobre forma, histórico e estatísticas",
+    "analise": "Análise técnica de 2 linhas",
     "confianca": "Alta"
   },
   "noAlvo": {
     "partida": "Time A x Time B",
     "mercados": [
-      { "mercado": "Total de gols", "selecao": "Mais de 2.5", "odd": 1.85 }
+      { "mercado": "Total de gols", "selecao": "Mais de 2.5 gols", "odd": 1.80 }
     ],
-    "odd_combinada": 1.85,
+    "odd_combinada": 1.80,
     "analise": "Análise técnica de 2 linhas",
     "confianca": "Média-Alta"
   },
@@ -115,15 +126,13 @@ Responda APENAS com JSON puro sem markdown:
   }
 }
 
-Restrições OBRIGATÓRIAS:
+REGRAS:
+- Use EXATAMENTE as odds dos dados fornecidos — copie os valores sem arredondar
 - safe: odd_combinada entre 1.20 e 1.50
 - noAlvo: odd_combinada entre 1.60 e 2.00
 - arriscada: odd_combinada acima de 5.00
-
-Combinações PROIBIDAS:
-- Time A vence + Dupla chance 1X (redundante)
-- Mais de 2.5 gols + Ambas marcam Não (contraditório)
-- Time A vence + Time B marca primeiro (contraditório)`;
+- Não combine mercados contraditórios
+- A odd_combinada deve ser o produto das odds individuais`;
 
     const response = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
@@ -136,7 +145,7 @@ Combinações PROIBIDAS:
         body: JSON.stringify({
           model: "llama-3.1-8b-instant",
           max_tokens: 1500,
-          temperature: 0.3,
+          temperature: 0.2,
           messages: [{ role: "user", content: prompt }],
         }),
       },
@@ -149,7 +158,7 @@ Combinações PROIBIDAS:
 
     return NextResponse.json({
       dicas,
-      temOddsReais,
+      temOddsReais: temOdds,
       geradoEm: new Date().toISOString(),
     });
   } catch (err) {
