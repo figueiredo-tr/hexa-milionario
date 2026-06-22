@@ -17,10 +17,25 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="dark">
       <body
-        className={`${inter.className} bg-gray-950 text-white min-h-screen`}
+        className={`           ${inter.className}
+          min-h-screen
+          text-white
+          bg-black
+          bg-fixed
+          bg-cover
+          bg-center
+        `}
+        style={{
+          backgroundImage: `             linear-gradient(
+              rgba(0,0,0,0.85),
+              rgba(0,0,0,0.92)
+            ),
+            url('/images/worldcup-bg.jpg')
+          `,
+        }}
       >
-        {children}
-      </body>
+        {children}{" "}
+      </body>{" "}
     </html>
   );
 }
