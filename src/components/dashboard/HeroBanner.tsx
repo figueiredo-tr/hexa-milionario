@@ -16,12 +16,15 @@ function Hexagono({ bandeira, nome }: { bandeira: string; nome: string }) {
         <svg viewBox="0 0 50 50" className="w-12 h-12 absolute">
           <polygon
             points="25,2 47,14 47,36 25,48 3,36 3,14"
-            fill="rgba(255,255,255,0.05)"
-            stroke="rgba(255,255,255,0.25)"
+            fill="rgba(255,255,255,0.08)"
+            stroke="rgba(255,255,255,0.30)"
             strokeWidth="1.5"
           />
         </svg>
-        <span className="relative text-2xl z-10">{bandeira}</span>
+        {/* ✅ Bandeira maior, ocupando o hexágono */}
+        <span className="relative z-10 leading-none" style={{ fontSize: 28 }}>
+          {bandeira}
+        </span>
       </div>
       <span className="text-[9px] text-gray-400 font-medium">{nome}</span>
     </div>
@@ -61,8 +64,9 @@ export default function HeroBanner() {
               2026
             </span>
           </div>
+          {/* ✅ Removido o 🇧🇷 do título */}
           <h2 className="text-3xl md:text-4xl font-black text-white leading-tight">
-            Rumo ao <span className="text-yellow-400">Hexa</span> 🇧🇷
+            Rumo ao <span className="text-yellow-400">Hexa</span>
           </h2>
           <p className="text-gray-400 text-sm mt-2 max-w-md">
             Acompanhe seus palpites, gerencie sua banca e compete com amigos
