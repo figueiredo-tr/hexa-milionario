@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import GraficoBanca from "@/components/dashboard/GraficoBanca";
+import HeroBanner from "@/components/dashboard/HeroBanner";
+import DicasDiarias from "@/components/dashboard/DicasDiarias";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -28,7 +30,6 @@ export default async function DashboardPage() {
     .order("banca_atual", { ascending: false })
     .limit(3);
 
-  // ── Stats ──────────────────────────────────────────────────────────
   const totalApostas = apostas?.length || 0;
   const ganhas = apostas?.filter((a) => a.resultado === "ganhou").length || 0;
   const perdidas = apostas?.filter((a) => a.resultado === "perdeu").length || 0;
@@ -48,7 +49,6 @@ export default async function DashboardPage() {
       ?.filter((a) => a.resultado !== "pendente")
       .reduce((s: number, a: any) => s + Number(a.stake), 0) || 0;
 
-  // ── Evolução da banca para o gráfico ───────────────────────────────
   const evolucao = (() => {
     let banca = profile?.banca_inicial || 0;
     const pontos: { label: string; banca: number }[] = [
@@ -105,7 +105,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* ── Cabeçalho ── */}
+      <HeroBanner />
+
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white">
@@ -127,7 +128,6 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Cards de stats ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {statCards.map((s) => (
           <Card
@@ -148,7 +148,8 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      {/* ── Gráfico + Ranking ── */}
+      <DicasDiarias userEmail={user?.email || ""} />
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gray-900 border-gray-800 md:col-span-2">
           <CardHeader className="pb-2">
@@ -223,7 +224,6 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {/* ── Últimas apostas ── */}
       <Card className="bg-gray-900 border-gray-800">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -285,13 +285,7 @@ export default async function DashboardPage() {
                       </p>
                     </div>
                     <Badge
-                      className={`shrink-0 text-xs px-2 py-0.5 ${
-                        aposta.resultado === "ganhou"
-                          ? "bg-green-600/20 text-green-400 border border-green-800"
-                          : aposta.resultado === "perdeu"
-                            ? "bg-red-600/20 text-red-400 border border-red-800"
-                            : "bg-yellow-600/20 text-yellow-400 border border-yellow-800"
-                      }`}
+                      className={`shrink-0 text-xs px-2 py-0.5 ${aposta.resultado === "ganhou" ? "bg-green-600/20 text-green-400 border border-green-800" : aposta.resultado === "perdeu" ? "bg-red-600/20 text-red-400 border border-red-800" : "bg-yellow-600/20 text-yellow-400 border border-yellow-800"}`}
                     >
                       {aposta.resultado === "ganhou"
                         ? "✅ Ganhou"
@@ -318,7 +312,6 @@ export default async function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* ── Atalhos rápidos ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { href: "/apostas", icon: "🎯", label: "Nova Aposta" },
