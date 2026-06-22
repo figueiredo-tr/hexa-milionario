@@ -1,11 +1,25 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 const ADMIN_EMAIL = "andrefigueiredo.v@gmail.com";
 
+type Mercado = {
+  mercado: string;
+  selecao: string;
+  odd: number;
+};
+
 type Dica = {
+  partida: string;
+  mercados: Mercado[];
+  odd_combinada: number;
+  analise: string;
+  confianca: string;
+};
+
+type DicaLegacy = {
   partida: string;
   mercado: string;
   odd: string;
@@ -13,12 +27,52 @@ type Dica = {
 };
 
 type DicasDia = {
-  dica_safe: Dica;
-  dica_alvo: Dica;
-  dica_arriscada: Dica;
+  dica_safe: Dica | DicaLegacy;
+  dica_alvo: Dica | DicaLegacy;
+  dica_arriscada: Dica | DicaLegacy;
 };
 
-const dicaVazia: Dica = { partida: "", mercado: "", odd: "", descricao: "" };
+const dicaVazia: Dica = {
+  partida: "",
+  mercados: [],
+  odd_combinada: 0,
+  analise: "",
+  confianca: "",
+};
+
+function isNovaEstrutura(dica: any): dica is Dica {
+  return dica && Array.isArray(dica.mercados);
+}
+
+const configTipo = {
+  safe: {
+    label: "🛡️ Safe",
+    sub: "Odd até 1.50",
+    color: "text-green-400",
+    border: "border-green-900",
+    bg: "bg-green-900/10",
+    badge: "bg-green-900/30 text-green-300 border-green-800",
+    confiancaBg: "bg-green-800/40",
+  },
+  alvo: {
+    label: "🎯 No Alvo",
+    sub: "Odd 1.70 – 2.00",
+    color: "text-yellow-400",
+    border: "border-yellow-900",
+    bg: "bg-yellow-900/10",
+    badge: "bg-yellow-900/30 text-yellow-300 border-yellow-800",
+    confiancaBg: "bg-yellow-800/40",
+  },
+  arriscada: {
+    label: "🔥 Arriscada",
+    sub: "Odd acima de 5.00",
+    color: "text-red-400",
+    border: "border-red-900",
+    bg: "bg-red-900/10",
+    badge: "bg-red-900/30 text-red-300 border-red-800",
+    confiancaBg: "bg-red-800/40",
+  },
+};
 
 function DicaCard({
   tipo,
@@ -27,53 +81,29 @@ function DicaCard({
   onEdit,
 }: {
   tipo: "safe" | "alvo" | "arriscada";
-  dica: Dica;
+  dica: Dica | DicaLegacy;
   isAdmin: boolean;
   onEdit: () => void;
 }) {
-  const config = {
-    safe: {
-      label: "🛡️ Safe",
-      sub: "Odd até 1.50",
-      color: "text-green-400",
-      border: "border-green-900",
-      bg: "bg-green-900/10",
-      badge: "bg-green-900/30 text-green-300 border-green-800",
-    },
-    alvo: {
-      label: "🎯 No Alvo",
-      sub: "Odd 1.70 – 2.00",
-      color: "text-yellow-400",
-      border: "border-yellow-900",
-      bg: "bg-yellow-900/10",
-      badge: "bg-yellow-900/30 text-yellow-300 border-yellow-800",
-    },
-    arriscada: {
-      label: "🔥 Arriscada",
-      sub: "Odd acima de 5.00",
-      color: "text-red-400",
-      border: "border-red-900",
-      bg: "bg-red-900/10",
-      badge: "bg-red-900/30 text-red-300 border-red-800",
-    },
-  }[tipo];
-
-  const vazia = !dica.partida && !dica.descricao;
+  const config = configTipo[tipo];
+  const nova = isNovaEstrutura(dica);
+  const vazia = !dica.partida;
 
   return (
     <Card
-      className={`bg-gray-900 border ${config.border} ${config.bg} relative`}
+      className={`bg-gray-900 border ${config.border} ${config.bg} relative flex flex-col`}
     >
       {isAdmin && (
         <button
           onClick={onEdit}
-          className="absolute top-3 right-3 text-gray-500 hover:text-white text-xs bg-gray-800 px-2 py-1 rounded-md transition-colors"
+          className="absolute top-3 right-3 text-gray-500 hover:text-white text-xs bg-gray-800 px-2 py-1 rounded-md transition-colors z-10"
         >
           ✏️ Editar
         </button>
       )}
-      <div className="pb-2 pt-4 px-6">
-        <div className="flex items-center gap-2">
+
+      <div className="pt-4 px-4 pb-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className={`text-base font-bold ${config.color}`}>
             {config.label}
           </span>
@@ -82,32 +112,85 @@ function DicaCard({
           >
             {config.sub}
           </span>
+          {nova && dica.confianca && (
+            <span
+              className={`text-[10px] px-2 py-0.5 rounded-full text-gray-300 ${config.confiancaBg}`}
+            >
+              Confiança: {dica.confianca}
+            </span>
+          )}
         </div>
       </div>
-      <div className="space-y-2 pb-4 px-6">
+
+      <div className="px-4 pb-4 space-y-3 flex-1">
         {vazia ? (
           <p className="text-gray-500 text-sm italic">
             Dica ainda não definida para hoje.
           </p>
         ) : (
           <>
-            {dica.partida && (
-              <p className="text-white text-sm font-semibold">
-                ⚽ {dica.partida}
-              </p>
-            )}
-            {dica.mercado && (
-              <p className="text-gray-300 text-xs">📌 {dica.mercado}</p>
-            )}
-            {dica.descricao && (
-              <p className="text-gray-400 text-xs">{dica.descricao}</p>
-            )}
-            {dica.odd && (
-              <div
-                className={`inline-block text-sm font-bold px-3 py-1 rounded-lg ${config.badge} border`}
-              >
-                Odd: {dica.odd}
-              </div>
+            <p className="text-white text-sm font-semibold">
+              ⚽ {dica.partida}
+            </p>
+
+            {nova ? (
+              <>
+                <div className="space-y-2">
+                  {dica.mercados.map((m, i) => (
+                    <div
+                      key={i}
+                      className={`flex items-center justify-between p-2 rounded-lg ${config.badge} border`}
+                    >
+                      <div>
+                        <p className="text-[10px] text-gray-400">{m.mercado}</p>
+                        <p className="text-xs font-semibold text-white">
+                          {m.selecao}
+                        </p>
+                      </div>
+                      <span className="text-xs font-bold ml-2 shrink-0">
+                        Odd: {m.odd}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {dica.mercados.length > 1 && (
+                  <div
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg border ${config.badge}`}
+                  >
+                    <span className="text-xs text-gray-300">Odd Combinada</span>
+                    <span className={`text-sm font-bold ${config.color}`}>
+                      {dica.odd_combinada}
+                    </span>
+                  </div>
+                )}
+
+                {dica.analise && (
+                  <p className="text-gray-400 text-xs leading-relaxed border-t border-gray-800 pt-2">
+                    📊 {dica.analise}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                {(dica as DicaLegacy).mercado && (
+                  <p className="text-gray-300 text-xs">
+                    📌 {(dica as DicaLegacy).mercado}
+                  </p>
+                )}
+                {(dica as DicaLegacy).descricao && (
+                  <p className="text-gray-400 text-xs">
+                    {(dica as DicaLegacy).descricao}
+                  </p>
+                )}
+                {(dica as DicaLegacy).odd && (
+                  <div
+                    className={`inline-block text-sm font-bold px-3 py-1 rounded-lg ${config.badge} border`}
+                  >
+                    Odd: {(dica as DicaLegacy).odd}
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
@@ -118,16 +201,19 @@ function DicaCard({
 
 function EditModal({
   tipo,
-  dica,
-  onSave,
   onClose,
+  onSaveManual,
 }: {
   tipo: "safe" | "alvo" | "arriscada";
-  dica: Dica;
-  onSave: (d: Dica) => void;
   onClose: () => void;
+  onSaveManual: (d: DicaLegacy) => void;
 }) {
-  const [form, setForm] = useState<Dica>({ ...dica });
+  const [form, setForm] = useState<DicaLegacy>({
+    partida: "",
+    mercado: "",
+    odd: "",
+    descricao: "",
+  });
   const labels = {
     safe: "🛡️ Safe",
     alvo: "🎯 No Alvo",
@@ -151,7 +237,9 @@ function EditModal({
             />
           </div>
           <div>
-            <label className="text-gray-400 text-xs mb-1 block">Mercado</label>
+            <label className="text-gray-400 text-xs mb-1 block">
+              Mercado / Seleção
+            </label>
             <input
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-600"
               placeholder="Ex: Ambas marcam - Não"
@@ -169,9 +257,7 @@ function EditModal({
             />
           </div>
           <div>
-            <label className="text-gray-400 text-xs mb-1 block">
-              Descrição / Análise
-            </label>
+            <label className="text-gray-400 text-xs mb-1 block">Análise</label>
             <textarea
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-600 resize-none"
               placeholder="Ex: Time com melhor defesa da fase de grupos..."
@@ -183,7 +269,7 @@ function EditModal({
         </div>
         <div className="flex gap-3 pt-2">
           <button
-            onClick={() => onSave(form)}
+            onClick={() => onSaveManual(form)}
             className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition-colors text-sm"
           >
             Salvar
@@ -213,7 +299,6 @@ export default function DicasDiarias({ userEmail }: { userEmail: string }) {
   const [editando, setEditando] = useState<
     "safe" | "alvo" | "arriscada" | null
   >(null);
-  const [salvando, setSalvando] = useState(false);
   const [gerando, setGerando] = useState(false);
   const [erroIA, setErroIA] = useState("");
 
@@ -235,11 +320,10 @@ export default function DicasDiarias({ userEmail }: { userEmail: string }) {
     load();
   }, []);
 
-  async function salvarDica(
+  async function salvarDicaManual(
     tipo: "safe" | "alvo" | "arriscada",
-    novaDica: Dica,
+    novaDica: DicaLegacy,
   ) {
-    setSalvando(true);
     const campo = `dica_${tipo}`;
     const novasDicas = { ...dicas, [campo]: novaDica };
 
@@ -265,7 +349,6 @@ export default function DicasDiarias({ userEmail }: { userEmail: string }) {
 
     setDicas(novasDicas);
     setEditando(null);
-    setSalvando(false);
   }
 
   async function gerarComIA() {
@@ -289,21 +372,24 @@ export default function DicasDiarias({ userEmail }: { userEmail: string }) {
 
       const novasSafe: Dica = {
         partida: dicasIA.safe?.partida || "",
-        mercado: dicasIA.safe?.dica || "",
-        odd: String(dicasIA.safe?.odd || ""),
-        descricao: dicasIA.safe?.justificativa || "",
+        mercados: dicasIA.safe?.mercados || [],
+        odd_combinada: dicasIA.safe?.odd_combinada || 0,
+        analise: dicasIA.safe?.analise || "",
+        confianca: dicasIA.safe?.confianca || "",
       };
       const novasAlvo: Dica = {
         partida: dicasIA.noAlvo?.partida || "",
-        mercado: dicasIA.noAlvo?.dica || "",
-        odd: String(dicasIA.noAlvo?.odd || ""),
-        descricao: dicasIA.noAlvo?.justificativa || "",
+        mercados: dicasIA.noAlvo?.mercados || [],
+        odd_combinada: dicasIA.noAlvo?.odd_combinada || 0,
+        analise: dicasIA.noAlvo?.analise || "",
+        confianca: dicasIA.noAlvo?.confianca || "",
       };
       const novasArriscada: Dica = {
         partida: dicasIA.arriscada?.partida || "",
-        mercado: dicasIA.arriscada?.dica || "",
-        odd: String(dicasIA.arriscada?.odd || ""),
-        descricao: dicasIA.arriscada?.justificativa || "",
+        mercados: dicasIA.arriscada?.mercados || [],
+        odd_combinada: dicasIA.arriscada?.odd_combinada || 0,
+        analise: dicasIA.arriscada?.analise || "",
+        confianca: dicasIA.arriscada?.confianca || "",
       };
 
       const { data: existente } = await supabase
@@ -397,9 +483,8 @@ export default function DicasDiarias({ userEmail }: { userEmail: string }) {
       {editando && (
         <EditModal
           tipo={editando}
-          dica={dicas[`dica_${editando}` as keyof DicasDia]}
-          onSave={(d) => salvarDica(editando, d)}
           onClose={() => setEditando(null)}
+          onSaveManual={(d) => salvarDicaManual(editando, d)}
         />
       )}
     </div>
