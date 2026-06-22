@@ -32,7 +32,7 @@ type ApostaAllIn = {
 };
 
 // ─────────────────────────────────────────────
-// ABA GERENCIAMENTO (código original)
+// ABA GERENCIAMENTO
 // ─────────────────────────────────────────────
 function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
   const [oddPadrao, setOddPadrao] = useState(1.5);
@@ -137,71 +137,153 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gray-900 border-gray-800">
-          <CardHeader>
-            <CardTitle className="text-white text-sm">Odd Padrão</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Input
-              type="number"
-              step="0.01"
-              value={oddPadrao}
-              onChange={(e) => setOddPadrao(parseFloat(e.target.value))}
-              className="bg-gray-800 border-gray-700"
-            />
-          </CardContent>
-        </Card>
-        <Card className="bg-gray-900 border-gray-800">
-          <CardHeader>
-            <CardTitle className="text-white text-sm">
-              % da Banca por Aposta
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Input
-              type="number"
-              value={pctBanca}
-              onChange={(e) => setPctBanca(parseFloat(e.target.value))}
-              className="bg-gray-800 border-gray-700"
-            />
-          </CardContent>
-        </Card>
-        <Card className="bg-gray-900 border-gray-800">
-          <CardHeader>
-            <CardTitle className="text-white text-sm">Meta (R$)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Input
-              type="number"
-              value={meta}
-              onChange={(e) => setMeta(parseFloat(e.target.value))}
-              className="bg-gray-800 border-gray-700"
-            />
-          </CardContent>
-        </Card>
-      </div>
-
+    <div className="space-y-5">
+      {/* Configurações */}
       <Card className="bg-gray-900 border-gray-800">
-        <CardHeader>
-          <CardTitle className="text-white">
-            🎯 Meta: R$ {meta.toFixed(2)}
-          </CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-white text-sm">⚙️ Configurações</CardTitle>
         </CardHeader>
         <CardContent>
-          <Progress value={progresso} className="h-3" />
-          <p className="text-gray-400 text-sm mt-2">
-            Banca atual:{" "}
-            <span className="text-green-400 font-bold">
-              R$ {bancaAtual.toFixed(2)}
-            </span>{" "}
-            • Progresso:{" "}
-            <span className="text-yellow-400">{progresso.toFixed(1)}%</span>
-          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="flex flex-col gap-2">
+              <label className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest">
+                Odd Padrão
+              </label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={oddPadrao}
+                  onChange={(e) => setOddPadrao(parseFloat(e.target.value))}
+                  className="bg-gray-800 border-gray-700 text-white text-lg font-bold pl-4 pr-10 py-5 rounded-xl focus:border-green-600 focus:ring-0"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">
+                  odd
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-600">
+                Odd padrão para novas apostas
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest">
+                % da Banca por Aposta
+              </label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  value={pctBanca}
+                  onChange={(e) => setPctBanca(parseFloat(e.target.value))}
+                  className="bg-gray-800 border-gray-700 text-white text-lg font-bold pl-4 pr-8 py-5 rounded-xl focus:border-yellow-600 focus:ring-0"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-yellow-500 font-bold text-sm pointer-events-none">
+                  %
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-600">
+                Stake sugerido:{" "}
+                <span className="text-yellow-400 font-semibold">
+                  R$ {((bancaAtual * pctBanca) / 100).toFixed(2)}
+                </span>
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest">
+                Meta (R$)
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-500 font-bold text-sm pointer-events-none">
+                  R$
+                </span>
+                <Input
+                  type="number"
+                  value={meta}
+                  onChange={(e) => setMeta(parseFloat(e.target.value))}
+                  className="bg-gray-800 border-gray-700 text-white text-lg font-bold pl-9 pr-4 py-5 rounded-xl focus:border-green-600 focus:ring-0"
+                />
+              </div>
+              <p className="text-[11px] text-gray-600">
+                Faltam:{" "}
+                <span className="text-green-400 font-semibold">
+                  R$ {Math.max(0, meta - bancaAtual).toFixed(2)}
+                </span>
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
+      {/* Progresso */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardContent className="pt-5 pb-5">
+          <div className="flex flex-col md:flex-row md:items-center gap-5">
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🎯</span>
+                <span className="text-white font-bold text-base">
+                  Meta: R$ {meta.toFixed(2)}
+                </span>
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] text-gray-500 uppercase tracking-wider">
+                    Progresso
+                  </span>
+                  <span className="text-sm font-bold text-yellow-400">
+                    {progresso.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="w-full h-3 bg-gray-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{
+                      width: `${progresso}%`,
+                      background:
+                        progresso >= 100
+                          ? "linear-gradient(90deg, #16a34a, #4ade80)"
+                          : "linear-gradient(90deg, #16a34a88, #4ade80)",
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="hidden md:block w-px h-16 bg-gray-800" />
+            <div className="flex gap-6 md:gap-8">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] text-gray-500 uppercase tracking-widest">
+                  Banca Atual
+                </span>
+                <span className="text-xl font-black text-green-400">
+                  R$ {bancaAtual.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] text-gray-500 uppercase tracking-widest">
+                  Lucro
+                </span>
+                <span
+                  className={`text-xl font-black ${bancaAtual - bancaInicial >= 0 ? "text-green-400" : "text-red-400"}`}
+                >
+                  {bancaAtual - bancaInicial >= 0 ? "+" : ""}R${" "}
+                  {(bancaAtual - bancaInicial).toFixed(2)}
+                </span>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] text-gray-500 uppercase tracking-widest">
+                  Apostas
+                </span>
+                <span className="text-xl font-black text-white">
+                  {apostas.length}
+                </span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Gráfico */}
       <Card className="bg-gray-900 border-gray-800">
         <CardHeader>
           <CardTitle className="text-white">📊 Evolução da Banca</CardTitle>
@@ -231,6 +313,7 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
         </CardContent>
       </Card>
 
+      {/* Tabela */}
       <Card className="bg-gray-900 border-gray-800">
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -332,6 +415,7 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
         </CardContent>
       </Card>
 
+      {/* Simulador */}
       <Card className="bg-gray-900 border-gray-800">
         <CardHeader>
           <CardTitle className="text-white">🔮 Simulador</CardTitle>
@@ -383,12 +467,12 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
 }
 
 // ─────────────────────────────────────────────
-// ABA ALL IN — reinveste lucro total em odds baixas
+// ABA ALL IN
 // ─────────────────────────────────────────────
 function AllIn({ bancaInicial }: { bancaInicial: number }) {
   const [bets, setBets] = useState<ApostaAllIn[]>([]);
   const [oddPadrao, setOddPadrao] = useState(1.5);
-  const [meta, setMeta] = useState(1000);
+  const [simRodadas, setSimRodadas] = useState(5);
   const [idCnt, setIdCnt] = useState(1);
   const supabase = createClient();
 
@@ -405,7 +489,6 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
       if (data?.allin_apostas) {
         setBets(data.allin_apostas);
         setOddPadrao(data.allin_odd || 1.5);
-        setMeta(data.allin_meta || 1000);
         setIdCnt((data.allin_apostas?.length || 0) + 1);
       }
     }
@@ -421,11 +504,7 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
       .select("id")
       .eq("user_id", user!.id)
       .single();
-    const payload = {
-      allin_apostas: bets,
-      allin_odd: oddPadrao,
-      allin_meta: meta,
-    };
+    const payload = { allin_apostas: bets, allin_odd: oddPadrao };
     if (existing) {
       await supabase
         .from("escalada")
@@ -436,12 +515,11 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
     }
   }
 
-  // Calcula banca a partir do índice
   function bancaEm(idx: number): number {
     let b = bancaInicial;
     for (let i = 0; i < idx; i++) {
       const bet = bets[i];
-      const stake = bet.stake ?? b; // ALL IN = aposta tudo
+      const stake = bet.stake ?? b;
       if (bet.status === "won") b = b - stake + stake * bet.odd;
       else if (bet.status === "lost") b = b - stake;
     }
@@ -450,10 +528,6 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
 
   const bancaFinal = bancaEm(bets.length);
   const lucro = bancaFinal - bancaInicial;
-  const progresso = Math.min(
-    100,
-    Math.max(0, ((bancaFinal - bancaInicial) / (meta - bancaInicial)) * 100),
-  );
   const ganhos = bets.filter((b) => b.status === "won").length;
   const total = bets.filter((b) => b.status !== "pending").length;
 
@@ -461,6 +535,19 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
     { n: 0, banca: bancaInicial },
     ...bets.map((_, i) => ({ n: i + 1, banca: bancaEm(i + 1) })),
   ];
+
+  // Simulador ALL IN: aposta tudo a cada rodada
+  const simDadosAllIn = (() => {
+    let b = bancaFinal;
+    const pts = [{ n: 0, banca: b }];
+    for (let i = 0; i < simRodadas; i++) {
+      b = parseFloat((b * oddPadrao).toFixed(2));
+      pts.push({ n: i + 1, banca: b });
+    }
+    return pts;
+  })();
+  const retornoSimulado = simDadosAllIn[simDadosAllIn.length - 1]?.banca ?? 0;
+  const lucroSimulado = retornoSimulado - bancaFinal;
 
   function addBet() {
     setBets((prev) => [
@@ -481,7 +568,7 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Aviso */}
       <div className="bg-red-950/40 border border-red-800 rounded-xl px-4 py-3 flex items-start gap-3">
         <span className="text-2xl">⚠️</span>
@@ -496,41 +583,37 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
         </div>
       </div>
 
-      {/* Configurações */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="bg-gray-900 border-gray-800">
-          <CardHeader>
-            <CardTitle className="text-white text-sm">
-              Odd Padrão (editável por linha)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Input
-              type="number"
-              step="0.01"
-              min="1.01"
-              value={oddPadrao}
-              onChange={(e) => setOddPadrao(parseFloat(e.target.value))}
-              className="bg-gray-800 border-gray-700"
-            />
-          </CardContent>
-        </Card>
-        <Card className="bg-gray-900 border-gray-800">
-          <CardHeader>
-            <CardTitle className="text-white text-sm">Meta (R$)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Input
-              type="number"
-              value={meta}
-              onChange={(e) => setMeta(parseFloat(e.target.value))}
-              className="bg-gray-800 border-gray-700"
-            />
-          </CardContent>
-        </Card>
-      </div>
+      {/* Configuração — só Odd Padrão */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-white text-sm">⚙️ Configuração</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="max-w-xs flex flex-col gap-2">
+            <label className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest">
+              Odd Padrão
+            </label>
+            <div className="relative">
+              <Input
+                type="number"
+                step="0.01"
+                min="1.01"
+                value={oddPadrao}
+                onChange={(e) => setOddPadrao(parseFloat(e.target.value))}
+                className="bg-gray-800 border-gray-700 text-white text-lg font-bold pl-4 pr-10 py-5 rounded-xl focus:border-red-600 focus:ring-0"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">
+                odd
+              </span>
+            </div>
+            <p className="text-[11px] text-gray-600">
+              Editável individualmente em cada linha da tabela
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Cards de stats */}
+      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           {
@@ -565,27 +648,170 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
         ))}
       </div>
 
-      {/* Progresso */}
-      <Card className="bg-gray-900 border-gray-800">
-        <CardContent className="pt-4">
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-400">
-              Progresso para meta R$ {meta.toFixed(0)}
-            </span>
-            <span className="text-yellow-400 font-semibold">
-              {progresso.toFixed(1)}%
-            </span>
+      {/* Simulador ALL IN */}
+      <Card className="bg-gray-900 border-yellow-900/50 border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-white text-sm flex items-center gap-2">
+            🔮 Simulador ALL IN
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Input de rodadas */}
+          <div className="flex flex-col md:flex-row md:items-end gap-4">
+            <div className="flex flex-col gap-2 max-w-[160px]">
+              <label className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest">
+                Rodadas seguidas
+              </label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={simRodadas}
+                  onChange={(e) =>
+                    setSimRodadas(Math.max(1, parseInt(e.target.value) || 1))
+                  }
+                  className="bg-gray-800 border-gray-700 text-white text-lg font-bold pl-4 pr-12 py-5 rounded-xl focus:border-yellow-600 focus:ring-0"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">
+                  rodadas
+                </span>
+              </div>
+            </div>
+
+            {/* Resultado em destaque */}
+            <div className="flex-1 bg-gray-800/60 rounded-xl px-5 py-4 flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
+              <div>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-0.5">
+                  Banca de entrada
+                </p>
+                <p className="text-lg font-bold text-white">
+                  R$ {bancaFinal.toFixed(2)}
+                </p>
+              </div>
+              <div className="hidden md:block text-gray-600 text-2xl">→</div>
+              <div>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-0.5">
+                  Após {simRodadas} rodada{simRodadas > 1 ? "s" : ""} ALL IN
+                  (odd {oddPadrao})
+                </p>
+                <p className="text-2xl font-black text-yellow-400">
+                  R$ {retornoSimulado.toFixed(2)}
+                </p>
+              </div>
+              <div className="hidden md:block text-gray-600 text-2xl">·</div>
+              <div>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-0.5">
+                  Lucro potencial
+                </p>
+                <p
+                  className={`text-2xl font-black ${lucroSimulado >= 0 ? "text-green-400" : "text-red-400"}`}
+                >
+                  {lucroSimulado >= 0 ? "+" : ""}R$ {lucroSimulado.toFixed(2)}
+                </p>
+              </div>
+            </div>
           </div>
-          <Progress value={progresso} className="h-3" />
+
+          {/* Tabela de projeção por rodada */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-gray-500 border-b border-gray-800 text-[11px] uppercase tracking-wider">
+                  <th className="text-left py-2">Rodada</th>
+                  <th className="text-left py-2">Banca antes</th>
+                  <th className="text-left py-2">Stake (ALL IN)</th>
+                  <th className="text-left py-2">Odd</th>
+                  <th className="text-left py-2">Retorno</th>
+                  <th className="text-left py-2">Lucro acum.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {simDadosAllIn.slice(0, -1).map((ponto, i) => {
+                  const bancaAntes = ponto.banca;
+                  const retorno = simDadosAllIn[i + 1].banca;
+                  const lucroAcum = retorno - bancaFinal;
+                  return (
+                    <tr
+                      key={i}
+                      className="border-b border-gray-800/60 hover:bg-gray-800/30 transition-colors"
+                    >
+                      <td className="py-2.5 text-gray-400 font-medium">
+                        {i + 1}
+                      </td>
+                      <td className="py-2.5 text-white">
+                        R$ {bancaAntes.toFixed(2)}
+                      </td>
+                      <td className="py-2.5 text-red-400 font-semibold">
+                        R$ {bancaAntes.toFixed(2)}
+                      </td>
+                      <td className="py-2.5 text-yellow-400 font-semibold">
+                        {oddPadrao}
+                      </td>
+                      <td className="py-2.5 text-green-400 font-bold">
+                        R$ {retorno.toFixed(2)}
+                      </td>
+                      <td className="py-2.5">
+                        <span
+                          className={`font-bold ${lucroAcum >= 0 ? "text-green-400" : "text-red-400"}`}
+                        >
+                          {lucroAcum >= 0 ? "+" : ""}R$ {lucroAcum.toFixed(2)}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Gráfico do simulador */}
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={simDadosAllIn}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis
+                dataKey="n"
+                stroke="#9CA3AF"
+                label={{
+                  value: "Rodada",
+                  position: "insideBottom",
+                  offset: -2,
+                  fill: "#6B7280",
+                  fontSize: 11,
+                }}
+              />
+              <YAxis stroke="#9CA3AF" tickFormatter={(v) => `R$${v}`} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#1F2937",
+                  border: "none",
+                  color: "#fff",
+                }}
+                formatter={(v: number) => [`R$ ${v.toFixed(2)}`, "Banca"]}
+              />
+              <Line
+                type="monotone"
+                dataKey="banca"
+                stroke="#eab308"
+                strokeWidth={2.5}
+                dot={{ fill: "#eab308", r: 3 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+
+          <p className="text-[10px] text-gray-600 text-center">
+            ⚠️ Simulação considera <strong>todas as rodadas ganhas</strong>. Uma
+            derrota zera a banca.
+          </p>
         </CardContent>
       </Card>
 
-      {/* Gráfico */}
+      {/* Gráfico histórico */}
       {chartData.length > 1 && (
         <Card className="bg-gray-900 border-gray-800">
           <CardHeader>
             <CardTitle className="text-white text-sm">
-              📊 Evolução da Banca
+              📊 Histórico da Banca
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -615,7 +841,7 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
         </Card>
       )}
 
-      {/* Tabela */}
+      {/* Tabela ALL IN */}
       <Card className="bg-gray-900 border-gray-800">
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -801,7 +1027,6 @@ export default function EscaladaPage() {
         📈 Escalada de Reinvestimento
       </h1>
 
-      {/* Seletor de abas */}
       <div className="flex gap-2">
         <button
           onClick={() => setAba("gerenciamento")}
@@ -825,7 +1050,6 @@ export default function EscaladaPage() {
         </button>
       </div>
 
-      {/* Conteúdo */}
       {aba === "gerenciamento" ? (
         <Gerenciamento bancaInicial={bancaInicial} />
       ) : (
