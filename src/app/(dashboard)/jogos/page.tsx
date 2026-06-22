@@ -57,20 +57,43 @@ function TeamFlag({
   return <span>{bandeira}</span>;
 }
 
+// ✅ CORRIGIDO: retorna a data atual no fuso de Brasília (UTC-3)
+function hojeEmBrasilia(): Date {
+  const agora = new Date();
+  // Cria uma data "local" usando o offset de Brasília
+  const offsetBrasilia = -3 * 60; // -180 minutos
+  const offsetLocal = agora.getTimezoneOffset(); // minutos de diferença do UTC
+  const diff = (offsetBrasilia - offsetLocal) * 60 * 1000;
+  return new Date(agora.getTime() + diff);
+}
+
+// ✅ CORRIGIDO: formata YYYYMMDD sem converter para UTC
 function formatDateParam(date: Date): string {
-  return date.toISOString().slice(0, 10).replace(/-/g, "");
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}${m}${d}`;
+}
+
+// ✅ CORRIGIDO: compara datas pelo valor local, não pelo UTC
+function mesmoDia(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
 }
 
 function formatDateLabel(date: Date): string {
-  const hoje = new Date();
-  const amanha = new Date();
+  const hoje = hojeEmBrasilia();
+  const amanha = new Date(hoje);
   amanha.setDate(hoje.getDate() + 1);
-  const ontem = new Date();
+  const ontem = new Date(hoje);
   ontem.setDate(hoje.getDate() - 1);
-  const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
-  if (sameDay(date, hoje)) return "Hoje";
-  if (sameDay(date, amanha)) return "Amanhã";
-  if (sameDay(date, ontem)) return "Ontem";
+
+  if (mesmoDia(date, hoje)) return "Hoje";
+  if (mesmoDia(date, amanha)) return "Amanhã";
+  if (mesmoDia(date, ontem)) return "Ontem";
   return date.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "2-digit",
@@ -85,7 +108,9 @@ export default function JogosPage() {
   const [fonte, setFonte] = useState("");
   const [fase, setFase] = useState("");
   const [aba, setAba] = useState<"jogos" | "grupos">("jogos");
-  const [dataSelecionada, setDataSelecionada] = useState<Date>(new Date());
+  // ✅ CORRIGIDO: inicializa com a data de Brasília
+  const [dataSelecionada, setDataSelecionada] =
+    useState<Date>(hojeEmBrasilia());
 
   async function fetchJogos(data: Date) {
     setLoading(true);
@@ -216,9 +241,9 @@ export default function JogosPage() {
             >
               Próximo →
             </button>
-            {dataSelecionada.toDateString() !== new Date().toDateString() && (
+            {!mesmoDia(dataSelecionada, hojeEmBrasilia()) && (
               <button
-                onClick={() => setDataSelecionada(new Date())}
+                onClick={() => setDataSelecionada(hojeEmBrasilia())}
                 className="px-3 py-1 rounded-md bg-gray-700 text-gray-300 hover:text-white text-xs"
               >
                 Hoje
