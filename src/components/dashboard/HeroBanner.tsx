@@ -1,5 +1,33 @@
 "use client";
 
+const selecoes = [
+  { bandeira: "🇧🇷", nome: "Brasil" },
+  { bandeira: "🇦🇷", nome: "Argentina" },
+  { bandeira: "🇫🇷", nome: "França" },
+  { bandeira: "🇩🇪", nome: "Alemanha" },
+  { bandeira: "🇪🇸", nome: "Espanha" },
+  { bandeira: "🇵🇹", nome: "Portugal" },
+];
+
+function Hexagono({ bandeira, nome }: { bandeira: string; nome: string }) {
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <div className="relative w-12 h-12 flex items-center justify-center">
+        <svg viewBox="0 0 50 50" className="w-12 h-12 absolute">
+          <polygon
+            points="25,2 47,14 47,36 25,48 3,36 3,14"
+            fill="rgba(255,255,255,0.05)"
+            stroke="rgba(255,255,255,0.25)"
+            strokeWidth="1.5"
+          />
+        </svg>
+        <span className="relative text-2xl z-10">{bandeira}</span>
+      </div>
+      <span className="text-[9px] text-gray-400 font-medium">{nome}</span>
+    </div>
+  );
+}
+
 export default function HeroBanner() {
   return (
     <div
@@ -52,7 +80,7 @@ export default function HeroBanner() {
         </div>
 
         {/* Arte direita */}
-        <div className="hidden md:flex items-center justify-center gap-4 shrink-0">
+        <div className="hidden md:flex items-center justify-center gap-6 shrink-0">
           {/* Troféu SVG */}
           <svg
             width="90"
@@ -127,34 +155,17 @@ export default function HeroBanner() {
             </defs>
           </svg>
 
-          {/* Jogadores */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 bg-gray-800/50 rounded-xl px-3 py-2 border border-gray-700">
-              <div className="w-8 h-8 rounded-full bg-yellow-500/20 border border-yellow-600 flex items-center justify-center text-sm">
-                ⭐
-              </div>
-              <div>
-                <p className="text-white text-xs font-bold">Vinicius Jr.</p>
-                <p className="text-gray-400 text-[10px]">🇧🇷 Brasil</p>
-              </div>
+          {/* Seleções em hexágonos */}
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              {selecoes.slice(0, 3).map((s) => (
+                <Hexagono key={s.nome} bandeira={s.bandeira} nome={s.nome} />
+              ))}
             </div>
-            <div className="flex items-center gap-2 bg-gray-800/50 rounded-xl px-3 py-2 border border-gray-700">
-              <div className="w-8 h-8 rounded-full bg-blue-500/20 border border-blue-600 flex items-center justify-center text-sm">
-                ⭐
-              </div>
-              <div>
-                <p className="text-white text-xs font-bold">Mbappé</p>
-                <p className="text-gray-400 text-[10px]">🇫🇷 França</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 bg-gray-800/50 rounded-xl px-3 py-2 border border-gray-700">
-              <div className="w-8 h-8 rounded-full bg-red-500/20 border border-red-600 flex items-center justify-center text-sm">
-                ⭐
-              </div>
-              <div>
-                <p className="text-white text-xs font-bold">Yamal</p>
-                <p className="text-gray-400 text-[10px]">🇪🇸 Espanha</p>
-              </div>
+            <div className="flex gap-2 justify-center">
+              {selecoes.slice(3, 6).map((s) => (
+                <Hexagono key={s.nome} bandeira={s.bandeira} nome={s.nome} />
+              ))}
             </div>
           </div>
         </div>
