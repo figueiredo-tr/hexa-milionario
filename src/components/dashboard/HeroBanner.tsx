@@ -1,15 +1,15 @@
 "use client";
 
 const selecoes = [
-  { bandeira: "🇧🇷", nome: "Brasil" },
-  { bandeira: "🇦🇷", nome: "Argentina" },
-  { bandeira: "🇫🇷", nome: "França" },
-  { bandeira: "🇩🇪", nome: "Alemanha" },
-  { bandeira: "🇪🇸", nome: "Espanha" },
-  { bandeira: "🇵🇹", nome: "Portugal" },
+  { codigo: "br", nome: "Brasil" },
+  { codigo: "ar", nome: "Argentina" },
+  { codigo: "fr", nome: "França" },
+  { codigo: "de", nome: "Alemanha" },
+  { codigo: "es", nome: "Espanha" },
+  { codigo: "pt", nome: "Portugal" },
 ];
 
-function Hexagono({ bandeira, nome }: { bandeira: string; nome: string }) {
+function Hexagono({ codigo, nome }: { codigo: string; nome: string }) {
   return (
     <div className="flex flex-col items-center gap-1">
       <div className="relative w-12 h-12 flex items-center justify-center">
@@ -21,10 +21,20 @@ function Hexagono({ bandeira, nome }: { bandeira: string; nome: string }) {
             strokeWidth="1.5"
           />
         </svg>
-        {/* ✅ Bandeira maior, ocupando o hexágono */}
-        <span className="relative z-10 leading-none" style={{ fontSize: 28 }}>
-          {bandeira}
-        </span>
+        {/* Máscara hexagonal para a imagem */}
+        <div
+          className="relative z-10 w-8 h-8 overflow-hidden"
+          style={{
+            clipPath:
+              "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)",
+          }}
+        >
+          <img
+            src={`https://flagcdn.com/w40/${codigo}.png`}
+            alt={nome}
+            className="w-full h-full object-cover"
+          />
+        </div>
       </div>
       <span className="text-[9px] text-gray-400 font-medium">{nome}</span>
     </div>
@@ -64,7 +74,6 @@ export default function HeroBanner() {
               2026
             </span>
           </div>
-          {/* ✅ Removido o 🇧🇷 do título */}
           <h2 className="text-3xl md:text-4xl font-black text-white leading-tight">
             Rumo ao <span className="text-yellow-400">Hexa</span>
           </h2>
@@ -163,12 +172,12 @@ export default function HeroBanner() {
           <div className="flex flex-col gap-2">
             <div className="flex gap-2">
               {selecoes.slice(0, 3).map((s) => (
-                <Hexagono key={s.nome} bandeira={s.bandeira} nome={s.nome} />
+                <Hexagono key={s.nome} codigo={s.codigo} nome={s.nome} />
               ))}
             </div>
             <div className="flex gap-2 justify-center">
               {selecoes.slice(3, 6).map((s) => (
-                <Hexagono key={s.nome} bandeira={s.bandeira} nome={s.nome} />
+                <Hexagono key={s.nome} codigo={s.codigo} nome={s.nome} />
               ))}
             </div>
           </div>
