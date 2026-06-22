@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 const ADMIN_EMAIL = "andrefigueiredo.v@gmail.com";
 
@@ -72,7 +72,7 @@ function DicaCard({
           ✏️ Editar
         </button>
       )}
-      <CardHeader className="pb-2 pt-4">
+      <div className="pb-2 pt-4 px-6">
         <div className="flex items-center gap-2">
           <span className={`text-base font-bold ${config.color}`}>
             {config.label}
@@ -83,8 +83,8 @@ function DicaCard({
             {config.sub}
           </span>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-2 pb-4">
+      </div>
+      <div className="space-y-2 pb-4 px-6">
         {vazia ? (
           <p className="text-gray-500 text-sm italic">
             Dica ainda não definida para hoje.
@@ -111,7 +111,7 @@ function DicaCard({
             )}
           </>
         )}
-      </CardContent>
+      </div>
     </Card>
   );
 }
@@ -214,6 +214,8 @@ export default function DicasDiarias({ userEmail }: { userEmail: string }) {
     "safe" | "alvo" | "arriscada" | null
   >(null);
   const [salvando, setSalvando] = useState(false);
+  const [gerando, setGerando] = useState(false);
+  const [erroIA, setErroIA] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -266,18 +268,111 @@ export default function DicasDiarias({ userEmail }: { userEmail: string }) {
     setSalvando(false);
   }
 
+  async function gerarComIA() {
+    setGerando(true);
+    setErroIA("");
+    try {
+      const resJogos = await fetch("/api/jogos");
+      const dataJogos = await resJogos.json();
+      const jogos = dataJogos.jogos || [];
+
+      const res = await fetch("/api/dicas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jogos }),
+      });
+
+      const data = await res.json();
+      if (data.erro) throw new Error(data.erro);
+
+      const { dicas: dicasIA } = data;
+
+      const novasSafe: Dica = {
+        partida: dicasIA.safe?.partida || "",
+        mercado: dicasIA.safe?.dica || "",
+        odd: String(dicasIA.safe?.odd || ""),
+        descricao: dicasIA.safe?.justificativa || "",
+      };
+      const novasAlvo: Dica = {
+        partida: dicasIA.noAlvo?.partida || "",
+        mercado: dicasIA.noAlvo?.dica || "",
+        odd: String(dicasIA.noAlvo?.odd || ""),
+        descricao: dicasIA.noAlvo?.justificativa || "",
+      };
+      const novasArriscada: Dica = {
+        partida: dicasIA.arriscada?.partida || "",
+        mercado: dicasIA.arriscada?.dica || "",
+        odd: String(dicasIA.arriscada?.odd || ""),
+        descricao: dicasIA.arriscada?.justificativa || "",
+      };
+
+      const { data: existente } = await supabase
+        .from("dicas_diarias")
+        .select("id")
+        .eq("data", hoje)
+        .single();
+
+      const payload = {
+        dica_safe: novasSafe,
+        dica_alvo: novasAlvo,
+        dica_arriscada: novasArriscada,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (existente) {
+        await supabase.from("dicas_diarias").update(payload).eq("data", hoje);
+      } else {
+        await supabase.from("dicas_diarias").insert({ data: hoje, ...payload });
+      }
+
+      setDicas({
+        dica_safe: novasSafe,
+        dica_alvo: novasAlvo,
+        dica_arriscada: novasArriscada,
+      });
+    } catch (err) {
+      setErroIA("Erro ao gerar dicas. Verifique a chave do Groq no .env.local");
+      console.error(err);
+    }
+    setGerando(false);
+  }
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-white font-bold text-base">💡 Dicas do Dia</h2>
-        <span className="text-gray-500 text-xs">
-          {new Date().toLocaleDateString("pt-BR", {
-            weekday: "long",
-            day: "2-digit",
-            month: "long",
-          })}
-        </span>
+        <div className="flex items-center gap-3">
+          {isAdmin && (
+            <button
+              onClick={gerarComIA}
+              disabled={gerando}
+              className="flex items-center gap-2 bg-purple-700 hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            >
+              {gerando ? (
+                <>
+                  <span className="animate-spin">⚙️</span> Gerando...
+                </>
+              ) : (
+                <>✨ Gerar com IA</>
+              )}
+            </button>
+          )}
+          <span className="text-gray-500 text-xs">
+            {new Date().toLocaleDateString("pt-BR", {
+              weekday: "long",
+              day: "2-digit",
+              month: "long",
+            })}
+          </span>
+        </div>
       </div>
+
+      {erroIA && (
+        <p className="text-red-400 text-xs bg-red-900/20 border border-red-800 rounded-lg px-3 py-2">
+          {erroIA}
+        </p>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <DicaCard
           tipo="safe"
@@ -298,6 +393,7 @@ export default function DicasDiarias({ userEmail }: { userEmail: string }) {
           onEdit={() => setEditando("arriscada")}
         />
       </div>
+
       {editando && (
         <EditModal
           tipo={editando}
