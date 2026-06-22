@@ -134,15 +134,15 @@ export default async function DashboardPage() {
             key={s.label}
             className={`bg-gray-900 border ${s.border} transition-all hover:scale-[1.02]`}
           >
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-start justify-between mb-2">
-                <span className="text-xl">{s.icon}</span>
-                <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">
+            <CardContent className="pt-6 pb-6">
+              <div className="flex flex-col items-center text-center gap-2">
+                <span className="text-3xl">{s.icon}</span>
+                <span className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest">
                   {s.label}
                 </span>
+                <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+                <p className="text-[12px] text-gray-500">{s.sub}</p>
               </div>
-              <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
-              <p className="text-[11px] text-gray-500 mt-1">{s.sub}</p>
             </CardContent>
           </Card>
         ))}
