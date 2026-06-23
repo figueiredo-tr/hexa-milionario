@@ -31,18 +31,17 @@ type ApostaAllIn = {
   status: "pending" | "won" | "lost";
 };
 
-// ─────────────────────────────────────────────
-// ABA GERENCIAMENTO
-// ─────────────────────────────────────────────
 function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
   const [oddPadrao, setOddPadrao] = useState(1.5);
   const [pctBanca, setPctBanca] = useState(20);
   const [meta, setMeta] = useState(500);
   const [apostas, setApostas] = useState<ApostaEscalada[]>([]);
   const [simulador, setSimulador] = useState(5);
+  const [valorInicial, setValorInicial] = useState(bancaInicial);
   const supabase = createClient();
 
   useEffect(() => {
+    setValorInicial(bancaInicial);
     async function load() {
       const {
         data: { user },
@@ -60,7 +59,7 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
       }
     }
     load();
-  }, []);
+  }, [bancaInicial]);
 
   async function salvar() {
     const {
@@ -95,7 +94,7 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
 
   function adicionarAposta() {
     const bancaAtual =
-      apostas.length === 0 ? bancaInicial : apostas[apostas.length - 1].banca;
+      apostas.length === 0 ? valorInicial : apostas[apostas.length - 1].banca;
     const stake = (bancaAtual * pctBanca) / 100;
     setApostas([
       ...apostas,
@@ -111,7 +110,18 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
   function toggleResultado(index: number, resultado: string) {
     const novas = [...apostas];
     novas[index].resultado = resultado;
-    let banca = bancaInicial;
+    let banca = valorInicial;
+    novas.forEach((a, i) => {
+      if (a.resultado === "ganhou") banca += a.stake * a.odd - a.stake;
+      if (a.resultado === "perdeu") banca -= a.stake;
+      novas[i].banca = parseFloat(banca.toFixed(2));
+    });
+    setApostas(novas);
+  }
+
+  function excluirAposta(index: number) {
+    const novas = apostas.filter((_, idx) => idx !== index);
+    let banca = valorInicial;
     novas.forEach((a, i) => {
       if (a.resultado === "ganhou") banca += a.stake * a.odd - a.stake;
       if (a.resultado === "perdeu") banca -= a.stake;
@@ -121,10 +131,10 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
   }
 
   const bancaAtual =
-    apostas.length > 0 ? apostas[apostas.length - 1].banca : bancaInicial;
+    apostas.length > 0 ? apostas[apostas.length - 1].banca : valorInicial;
   const progresso = Math.min((bancaAtual / meta) * 100, 100);
   const chartData = [
-    { n: 0, banca: bancaInicial },
+    { n: 0, banca: valorInicial },
     ...apostas.map((a, i) => ({ n: i + 1, banca: a.banca })),
   ];
 
@@ -145,24 +155,38 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Valor Inicial editável */}
             <div className="flex flex-col gap-2">
               <label className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest">
-                Odd Padrão
+                Valor Inicial (R$)
               </label>
               <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-500 font-bold text-sm pointer-events-none">
+                  R$
+                </span>
                 <Input
                   type="number"
                   step="0.01"
-                  value={oddPadrao}
-                  onChange={(e) => setOddPadrao(parseFloat(e.target.value))}
-                  className="bg-gray-800 border-gray-700 text-white text-lg font-bold pl-4 pr-10 py-5 rounded-xl focus:border-green-600 focus:ring-0"
+                  value={valorInicial}
+                  onChange={(e) => {
+                    const novo = parseFloat(e.target.value);
+                    setValorInicial(novo);
+                    // Recalcula bancas das apostas existentes
+                    let banca = novo;
+                    const novas = [...apostas];
+                    novas.forEach((a, i) => {
+                      if (a.resultado === "ganhou")
+                        banca += a.stake * a.odd - a.stake;
+                      if (a.resultado === "perdeu") banca -= a.stake;
+                      novas[i].banca = parseFloat(banca.toFixed(2));
+                    });
+                    setApostas(novas);
+                  }}
+                  className="bg-gray-800 border-gray-700 text-white text-lg font-bold pl-9 pr-4 py-5 rounded-xl focus:border-green-600 focus:ring-0"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">
-                  odd
-                </span>
               </div>
               <p className="text-[11px] text-gray-600">
-                Odd padrão para novas apostas
+                Banca de partida da escalada
               </p>
             </div>
 
@@ -264,10 +288,10 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
                   Lucro
                 </span>
                 <span
-                  className={`text-xl font-black ${bancaAtual - bancaInicial >= 0 ? "text-green-400" : "text-red-400"}`}
+                  className={`text-xl font-black ${bancaAtual - valorInicial >= 0 ? "text-green-400" : "text-red-400"}`}
                 >
-                  {bancaAtual - bancaInicial >= 0 ? "+" : ""}R${" "}
-                  {(bancaAtual - bancaInicial).toFixed(2)}
+                  {bancaAtual - valorInicial >= 0 ? "+" : ""}R${" "}
+                  {(bancaAtual - valorInicial).toFixed(2)}
                 </span>
               </div>
               <div className="flex flex-col gap-0.5">
@@ -347,6 +371,7 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
                   <th className="text-left py-2">Stake</th>
                   <th className="text-left py-2">Banca</th>
                   <th className="text-left py-2">Resultado</th>
+                  <th className="text-left py-2"></th>
                 </tr>
               </thead>
               <tbody>
@@ -380,7 +405,7 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
                       />
                     </td>
                     <td
-                      className={`py-2 font-medium ${a.banca > bancaInicial ? "text-green-400" : "text-red-400"}`}
+                      className={`py-2 font-medium ${a.banca > valorInicial ? "text-green-400" : "text-red-400"}`}
                     >
                       R$ {a.banca.toFixed(2)}
                     </td>
@@ -401,6 +426,14 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
                           ❌
                         </Button>
                       </div>
+                    </td>
+                    <td className="py-2">
+                      <button
+                        onClick={() => excluirAposta(i)}
+                        className="text-gray-600 hover:text-red-400 transition-colors text-lg leading-none"
+                      >
+                        ×
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -536,7 +569,6 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
     ...bets.map((_, i) => ({ n: i + 1, banca: bancaEm(i + 1) })),
   ];
 
-  // Simulador ALL IN: aposta tudo a cada rodada
   const simDadosAllIn = (() => {
     let b = bancaFinal;
     const pts = [{ n: 0, banca: b }];
@@ -569,7 +601,6 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
 
   return (
     <div className="space-y-5">
-      {/* Aviso */}
       <div className="bg-red-950/40 border border-red-800 rounded-xl px-4 py-3 flex items-start gap-3">
         <span className="text-2xl">⚠️</span>
         <div>
@@ -583,7 +614,6 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
         </div>
       </div>
 
-      {/* Configuração — só Odd Padrão */}
       <Card className="bg-gray-900 border-gray-800">
         <CardHeader className="pb-3">
           <CardTitle className="text-white text-sm">⚙️ Configuração</CardTitle>
@@ -613,7 +643,6 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
         </CardContent>
       </Card>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           {
@@ -648,7 +677,6 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
         ))}
       </div>
 
-      {/* Simulador ALL IN */}
       <Card className="bg-gray-900 border-yellow-900/50 border">
         <CardHeader className="pb-3">
           <CardTitle className="text-white text-sm flex items-center gap-2">
@@ -656,7 +684,6 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Input de rodadas */}
           <div className="flex flex-col md:flex-row md:items-end gap-4">
             <div className="flex flex-col gap-2 max-w-[160px]">
               <label className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest">
@@ -678,8 +705,6 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
                 </span>
               </div>
             </div>
-
-            {/* Resultado em destaque */}
             <div className="flex-1 bg-gray-800/60 rounded-xl px-5 py-4 flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
               <div>
                 <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-0.5">
@@ -713,7 +738,6 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
             </div>
           </div>
 
-          {/* Tabela de projeção por rodada */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -765,7 +789,6 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
             </table>
           </div>
 
-          {/* Gráfico do simulador */}
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={simDadosAllIn}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -798,7 +821,6 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
               />
             </LineChart>
           </ResponsiveContainer>
-
           <p className="text-[10px] text-gray-600 text-center">
             ⚠️ Simulação considera <strong>todas as rodadas ganhas</strong>. Uma
             derrota zera a banca.
@@ -806,7 +828,6 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
         </CardContent>
       </Card>
 
-      {/* Gráfico histórico */}
       {chartData.length > 1 && (
         <Card className="bg-gray-900 border-gray-800">
           <CardHeader>
@@ -841,7 +862,6 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
         </Card>
       )}
 
-      {/* Tabela ALL IN */}
       <Card className="bg-gray-900 border-gray-800">
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -999,7 +1019,7 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
 }
 
 // ─────────────────────────────────────────────
-// PÁGINA PRINCIPAL com abas
+// PÁGINA PRINCIPAL
 // ─────────────────────────────────────────────
 export default function EscaladaPage() {
   const [aba, setAba] = useState<"gerenciamento" | "allin">("gerenciamento");
@@ -1026,30 +1046,20 @@ export default function EscaladaPage() {
       <h1 className="text-2xl font-bold text-white">
         📈 Escalada de Reinvestimento
       </h1>
-
       <div className="flex gap-2">
         <button
           onClick={() => setAba("gerenciamento")}
-          className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-            aba === "gerenciamento"
-              ? "bg-green-600 text-white shadow-lg shadow-green-900/40"
-              : "bg-gray-800 text-gray-400 hover:text-white"
-          }`}
+          className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${aba === "gerenciamento" ? "bg-green-600 text-white shadow-lg shadow-green-900/40" : "bg-gray-800 text-gray-400 hover:text-white"}`}
         >
           📊 Gerenciamento
         </button>
         <button
           onClick={() => setAba("allin")}
-          className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-            aba === "allin"
-              ? "bg-red-600 text-white shadow-lg shadow-red-900/40"
-              : "bg-gray-800 text-gray-400 hover:text-white"
-          }`}
+          className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${aba === "allin" ? "bg-red-600 text-white shadow-lg shadow-red-900/40" : "bg-gray-800 text-gray-400 hover:text-white"}`}
         >
           💥 ALL IN
         </button>
       </div>
-
       {aba === "gerenciamento" ? (
         <Gerenciamento bancaInicial={bancaInicial} />
       ) : (
