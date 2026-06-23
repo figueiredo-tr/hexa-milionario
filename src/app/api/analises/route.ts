@@ -14,6 +14,97 @@ async function fetchESPN(url: string) {
   return res.json();
 }
 
+const traducaoTimes: Record<string, string> = {
+  // Américas
+  Brazil: "Brasil",
+  Argentina: "Argentina",
+  Colombia: "Colômbia",
+  Uruguay: "Uruguai",
+  Ecuador: "Equador",
+  Paraguay: "Paraguai",
+  Chile: "Chile",
+  Peru: "Peru",
+  Bolivia: "Bolívia",
+  Venezuela: "Venezuela",
+  Mexico: "México",
+  "United States": "Estados Unidos",
+  USA: "EUA",
+  Canada: "Canadá",
+  "Costa Rica": "Costa Rica",
+  Panama: "Panamá",
+  Jamaica: "Jamaica",
+  Honduras: "Honduras",
+  Guatemala: "Guatemala",
+  "Trinidad and Tobago": "Trinidad e Tobago",
+  // Europa
+  France: "França",
+  Germany: "Alemanha",
+  Spain: "Espanha",
+  Portugal: "Portugal",
+  England: "Inglaterra",
+  Netherlands: "Holanda",
+  Belgium: "Bélgica",
+  Italy: "Itália",
+  Croatia: "Croácia",
+  Switzerland: "Suíça",
+  Poland: "Polônia",
+  Denmark: "Dinamarca",
+  Serbia: "Sérvia",
+  Austria: "Áustria",
+  Ukraine: "Ucrânia",
+  Romania: "Romênia",
+  Hungary: "Hungria",
+  Czechia: "Tchéquia",
+  "Czech Republic": "Tchéquia",
+  Slovakia: "Eslováquia",
+  Turkey: "Turquia",
+  Greece: "Grécia",
+  Scotland: "Escócia",
+  Wales: "País de Gales",
+  Albania: "Albânia",
+  Norway: "Noruega",
+  Sweden: "Suécia",
+  Finland: "Finlândia",
+  Russia: "Rússia",
+  Slovenia: "Eslovênia",
+  "Bosnia & Herzegovina": "Bósnia e Herzegovina",
+  "Bosnia and Herzegovina": "Bósnia e Herzegovina",
+  // África
+  Morocco: "Marrocos",
+  Senegal: "Senegal",
+  Cameroon: "Camarões",
+  Cameroun: "Camarões",
+  Ghana: "Gana",
+  Tunisia: "Tunísia",
+  Nigeria: "Nigéria",
+  Mali: "Mali",
+  Algeria: "Argélia",
+  Egypt: "Egito",
+  "DR Congo": "Rep. Dem. do Congo",
+  "Congo DR": "Rep. Dem. do Congo",
+  "South Africa": "África do Sul",
+  "Ivory Coast": "Costa do Marfim",
+  "Cape Verde": "Cabo Verde",
+  // Ásia / Oceania
+  Japan: "Japão",
+  "South Korea": "Coreia do Sul",
+  "Saudi Arabia": "Arábia Saudita",
+  Iran: "Irã",
+  Qatar: "Catar",
+  Australia: "Austrália",
+  China: "China",
+  Indonesia: "Indonésia",
+  Thailand: "Tailândia",
+  Uzbekistan: "Uzbequistão",
+  "New Zealand": "Nova Zelândia",
+  Iraq: "Iraque",
+  Jordan: "Jordânia",
+};
+
+function traduzirTime(nome: string): string {
+  return traducaoTimes[nome] || nome;
+}
+
 function calcularProbabilidades(
   golsEsperadosCasa: number,
   golsEsperadosFora: number,
@@ -121,8 +212,10 @@ export async function GET(request: Request) {
       const home = comp?.competitors?.find((c: any) => c.homeAway === "home");
       const away = comp?.competitors?.find((c: any) => c.homeAway === "away");
 
-      const homeName = home?.team?.displayName || "Time A";
-      const awayName = away?.team?.displayName || "Time B";
+      const homeNameOriginal = home?.team?.displayName || "Time A";
+      const awayNameOriginal = away?.team?.displayName || "Time B";
+      const homeName = traduzirTime(homeNameOriginal);
+      const awayName = traduzirTime(awayNameOriginal);
       const logoHome = home?.team?.logos?.[0]?.href || home?.team?.logo || "";
       const logoAway = away?.team?.logos?.[0]?.href || away?.team?.logo || "";
 
