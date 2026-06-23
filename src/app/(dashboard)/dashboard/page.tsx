@@ -7,6 +7,7 @@ import HeroBanner from "@/components/dashboard/HeroBanner";
 import DicasDiarias from "@/components/dashboard/DicasDiarias";
 import BancaEditavel from "@/components/dashboard/BancaEditavel";
 import BancaInicialButton from "@/components/dashboard/BancaInicialButton";
+import AllInResumo from "@/components/dashboard/AllInResumo";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -148,6 +149,8 @@ export default async function DashboardPage() {
       </div>
 
       <DicasDiarias userEmail={user?.email || ""} />
+
+      <AllInResumo />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gray-900 border-gray-800 md:col-span-2">

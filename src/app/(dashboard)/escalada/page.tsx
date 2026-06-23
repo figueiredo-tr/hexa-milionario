@@ -148,14 +148,12 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
 
   return (
     <div className="space-y-5">
-      {/* Configurações */}
       <Card className="bg-gray-900 border-gray-800">
         <CardHeader className="pb-3">
           <CardTitle className="text-white text-sm">⚙️ Configurações</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {/* Valor Inicial editável */}
             <div className="flex flex-col gap-2">
               <label className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest">
                 Valor Inicial (R$)
@@ -171,7 +169,6 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
                   onChange={(e) => {
                     const novo = parseFloat(e.target.value);
                     setValorInicial(novo);
-                    // Recalcula bancas das apostas existentes
                     let banca = novo;
                     const novas = [...apostas];
                     novas.forEach((a, i) => {
@@ -239,7 +236,6 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
         </CardContent>
       </Card>
 
-      {/* Progresso */}
       <Card className="bg-gray-900 border-gray-800">
         <CardContent className="pt-5 pb-5">
           <div className="flex flex-col md:flex-row md:items-center gap-5">
@@ -307,7 +303,6 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
         </CardContent>
       </Card>
 
-      {/* Gráfico */}
       <Card className="bg-gray-900 border-gray-800">
         <CardHeader>
           <CardTitle className="text-white">📊 Evolução da Banca</CardTitle>
@@ -337,7 +332,6 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
         </CardContent>
       </Card>
 
-      {/* Tabela */}
       <Card className="bg-gray-900 border-gray-800">
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -448,7 +442,6 @@ function Gerenciamento({ bancaInicial }: { bancaInicial: number }) {
         </CardContent>
       </Card>
 
-      {/* Simulador */}
       <Card className="bg-gray-900 border-gray-800">
         <CardHeader>
           <CardTitle className="text-white">🔮 Simulador</CardTitle>
@@ -507,6 +500,7 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
   const [oddPadrao, setOddPadrao] = useState(1.5);
   const [simRodadas, setSimRodadas] = useState(5);
   const [idCnt, setIdCnt] = useState(1);
+  const [allInBancaInicial, setAllInBancaInicial] = useState(bancaInicial);
   const supabase = createClient();
 
   useEffect(() => {
@@ -524,9 +518,14 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
         setOddPadrao(data.allin_odd || 1.5);
         setIdCnt((data.allin_apostas?.length || 0) + 1);
       }
+      if (data?.allin_banca_inicial) {
+        setAllInBancaInicial(data.allin_banca_inicial);
+      } else {
+        setAllInBancaInicial(bancaInicial);
+      }
     }
     load();
-  }, []);
+  }, [bancaInicial]);
 
   async function salvar() {
     const {
@@ -537,7 +536,11 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
       .select("id")
       .eq("user_id", user!.id)
       .single();
-    const payload = { allin_apostas: bets, allin_odd: oddPadrao };
+    const payload = {
+      allin_apostas: bets,
+      allin_odd: oddPadrao,
+      allin_banca_inicial: allInBancaInicial,
+    };
     if (existing) {
       await supabase
         .from("escalada")
@@ -549,7 +552,7 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
   }
 
   function bancaEm(idx: number): number {
-    let b = bancaInicial;
+    let b = allInBancaInicial;
     for (let i = 0; i < idx; i++) {
       const bet = bets[i];
       const stake = bet.stake ?? b;
@@ -560,12 +563,12 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
   }
 
   const bancaFinal = bancaEm(bets.length);
-  const lucro = bancaFinal - bancaInicial;
+  const lucro = bancaFinal - allInBancaInicial;
   const ganhos = bets.filter((b) => b.status === "won").length;
   const total = bets.filter((b) => b.status !== "pending").length;
 
   const chartData = [
-    { n: 0, banca: bancaInicial },
+    { n: 0, banca: allInBancaInicial },
     ...bets.map((_, i) => ({ n: i + 1, banca: bancaEm(i + 1) })),
   ];
 
@@ -619,26 +622,50 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
           <CardTitle className="text-white text-sm">⚙️ Configuração</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="max-w-xs flex flex-col gap-2">
-            <label className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest">
-              Odd Padrão
-            </label>
-            <div className="relative">
-              <Input
-                type="number"
-                step="0.01"
-                min="1.01"
-                value={oddPadrao}
-                onChange={(e) => setOddPadrao(parseFloat(e.target.value))}
-                className="bg-gray-800 border-gray-700 text-white text-lg font-bold pl-4 pr-10 py-5 rounded-xl focus:border-red-600 focus:ring-0"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">
-                odd
-              </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-sm">
+            <div className="flex flex-col gap-2">
+              <label className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest">
+                Banca Inicial ALL IN (R$)
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-red-500 font-bold text-sm pointer-events-none">
+                  R$
+                </span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={allInBancaInicial}
+                  onChange={(e) =>
+                    setAllInBancaInicial(parseFloat(e.target.value))
+                  }
+                  className="bg-gray-800 border-gray-700 text-white text-lg font-bold pl-9 pr-4 py-5 rounded-xl focus:border-red-600 focus:ring-0"
+                />
+              </div>
+              <p className="text-[11px] text-gray-600">
+                Banca separada do gerenciamento
+              </p>
             </div>
-            <p className="text-[11px] text-gray-600">
-              Editável individualmente em cada linha da tabela
-            </p>
+            <div className="flex flex-col gap-2">
+              <label className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest">
+                Odd Padrão
+              </label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="1.01"
+                  value={oddPadrao}
+                  onChange={(e) => setOddPadrao(parseFloat(e.target.value))}
+                  className="bg-gray-800 border-gray-700 text-white text-lg font-bold pl-4 pr-10 py-5 rounded-xl focus:border-red-600 focus:ring-0"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">
+                  odd
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-600">
+                Editável individualmente em cada linha
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -647,7 +674,7 @@ function AllIn({ bancaInicial }: { bancaInicial: number }) {
         {[
           {
             label: "Banca Inicial",
-            value: `R$ ${bancaInicial.toFixed(2)}`,
+            value: `R$ ${allInBancaInicial.toFixed(2)}`,
             color: "text-white",
           },
           {
