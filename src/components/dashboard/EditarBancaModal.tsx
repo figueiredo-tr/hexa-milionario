@@ -22,14 +22,21 @@ export default function EditarBancaModal({
   async function salvar() {
     setSalvando(true);
     const novaInicial = parseFloat(valorInicial);
+    const lucroAtual = bancaAtual - bancaInicial; // preserva o lucro já feito
+    const novaBancaAtual = novaInicial + lucroAtual;
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
     await supabase
       .from("users_profile")
-      .update({ banca_inicial: novaInicial, banca_atual: novaInicial })
+      .update({
+        banca_inicial: novaInicial,
+        banca_atual: novaBancaAtual,
+      })
       .eq("user_id", user!.id);
-    onSalvo(novaInicial, novaInicial);
+
+    onSalvo(novaInicial, novaBancaAtual);
     setSalvando(false);
     onClose();
   }
