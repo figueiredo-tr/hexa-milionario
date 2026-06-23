@@ -84,7 +84,7 @@ export default function HeroBanner() {
           </p>
           <div className="flex gap-3 mt-4 flex-wrap">
             <span className="flex items-center gap-1.5 text-xs text-gray-300 bg-gray-800/60 px-3 py-1.5 rounded-full border border-gray-700">
-              🇺🇸 EUA · 🇲🇽 México · 🇨🇦 Canadá
+              🇺🇸 · 🇲🇽 · 🇨🇦
             </span>
             <span className="flex items-center gap-1.5 text-xs text-green-300 bg-green-900/30 px-3 py-1.5 rounded-full border border-green-800">
               ⚽ 48 seleções · 104 jogos
