@@ -6,6 +6,7 @@ import GraficoBanca from "@/components/dashboard/GraficoBanca";
 import HeroBanner from "@/components/dashboard/HeroBanner";
 import DicasDiarias from "@/components/dashboard/DicasDiarias";
 import BancaEditavel from "@/components/dashboard/BancaEditavel";
+import BancaInicialButton from "@/components/dashboard/BancaInicialButton";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -71,14 +72,6 @@ export default async function DashboardPage() {
 
   const statCards = [
     {
-      label: "Banca Atual",
-      value: `R$ ${(profile?.banca_atual || 0).toFixed(2)}`,
-      sub: `Inicial: R$ ${(profile?.banca_inicial || 0).toFixed(2)}`,
-      color: "text-green-400",
-      border: "border-green-900",
-      icon: "💰",
-    },
-    {
       label: "Lucro Total",
       value: `R$ ${lucro.toFixed(2)}`,
       sub: `ROI: ${roi}%`,
@@ -123,9 +116,10 @@ export default async function DashboardPage() {
               ⏳ {pendentes} pendente{pendentes > 1 ? "s" : ""}
             </Badge>
           )}
-          <Badge className="bg-green-600 text-white text-sm px-3 py-1">
-            ⚽ Copa 2026
-          </Badge>
+          <BancaInicialButton
+            bancaInicial={profile?.banca_inicial || 0}
+            bancaAtual={profile?.banca_atual || 0}
+          />
         </div>
       </div>
 
@@ -134,7 +128,7 @@ export default async function DashboardPage() {
           bancaAtual={profile?.banca_atual || 0}
           bancaInicial={profile?.banca_inicial || 0}
         />
-        {statCards.slice(1).map((s) => (
+        {statCards.map((s) => (
           <Card
             key={s.label}
             className={`bg-gray-900 border ${s.border} transition-all hover:scale-[1.02]`}
