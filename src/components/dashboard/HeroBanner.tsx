@@ -83,8 +83,22 @@ export default function HeroBanner() {
             campeão.
           </p>
           <div className="flex gap-3 mt-4 flex-wrap">
-            <span className="flex items-center gap-1.5 text-xs text-gray-300 bg-gray-800/60 px-3 py-1.5 rounded-full border border-gray-700">
-              🇺🇸 · 🇲🇽 · 🇨🇦
+            <span className="flex items-center gap-2 bg-gray-800/60 px-3 py-1.5 rounded-full border border-gray-700">
+              <img
+                src="https://flagcdn.com/w20/us.png"
+                alt="EUA"
+                className="w-4 h-3 object-cover rounded-sm"
+              />
+              <img
+                src="https://flagcdn.com/w20/mx.png"
+                alt="México"
+                className="w-4 h-3 object-cover rounded-sm"
+              />
+              <img
+                src="https://flagcdn.com/w20/ca.png"
+                alt="Canadá"
+                className="w-4 h-3 object-cover rounded-sm"
+              />
             </span>
             <span className="flex items-center gap-1.5 text-xs text-green-300 bg-green-900/30 px-3 py-1.5 rounded-full border border-green-800">
               ⚽ 48 seleções · 104 jogos
