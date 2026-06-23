@@ -62,43 +62,26 @@ const JOGOS_COPA: Record<string, string[]> = {
 
 // ─── Mercados completos ─────────────────────────────────────────────────────
 const MERCADOS = [
-  // Resultado
   { group: "Resultado", value: "vit_casa", label: "Vitória do mandante" },
   { group: "Resultado", value: "empate", label: "Empate" },
   { group: "Resultado", value: "vit_fora", label: "Vitória do visitante" },
-  {
-    group: "Resultado",
-    value: "dupla_1x",
-    label: "Dupla chance 1X (Mandante ou Empate)",
-  },
-  {
-    group: "Resultado",
-    value: "dupla_x2",
-    label: "Dupla chance X2 (Empate ou Visitante)",
-  },
-  {
-    group: "Resultado",
-    value: "dupla_12",
-    label: "Dupla chance 12 (Mandante ou Visitante)",
-  },
-  // Gols — Over
+  { group: "Resultado", value: "dupla_1x", label: "Dupla chance 1X" },
+  { group: "Resultado", value: "dupla_x2", label: "Dupla chance X2" },
+  { group: "Resultado", value: "dupla_12", label: "Dupla chance 12" },
   { group: "Gols Over", value: "over_0_5", label: "Mais de 0.5 gols" },
   { group: "Gols Over", value: "over_1_5", label: "Mais de 1.5 gols" },
   { group: "Gols Over", value: "over_2_5", label: "Mais de 2.5 gols" },
   { group: "Gols Over", value: "over_3_5", label: "Mais de 3.5 gols" },
   { group: "Gols Over", value: "over_4_5", label: "Mais de 4.5 gols" },
   { group: "Gols Over", value: "over_5_5", label: "Mais de 5.5 gols" },
-  // Gols — Under
   { group: "Gols Under", value: "under_0_5", label: "Menos de 0.5 gols" },
   { group: "Gols Under", value: "under_1_5", label: "Menos de 1.5 gols" },
   { group: "Gols Under", value: "under_2_5", label: "Menos de 2.5 gols" },
   { group: "Gols Under", value: "under_3_5", label: "Menos de 3.5 gols" },
   { group: "Gols Under", value: "under_4_5", label: "Menos de 4.5 gols" },
   { group: "Gols Under", value: "under_5_5", label: "Menos de 5.5 gols" },
-  // BTTS
   { group: "Ambas Marcam", value: "btts_sim", label: "Ambas marcam — Sim" },
   { group: "Ambas Marcam", value: "btts_nao", label: "Ambas marcam — Não" },
-  // Escanteios — Over
   {
     group: "Escanteios Over",
     value: "cant_ov_4_5",
@@ -149,7 +132,6 @@ const MERCADOS = [
     value: "cant_ov_13_5",
     label: "Mais de 13.5 escanteios",
   },
-  // Escanteios — Under
   {
     group: "Escanteios Under",
     value: "cant_un_4_5",
@@ -195,7 +177,6 @@ const MERCADOS = [
     value: "cant_un_12_5",
     label: "Menos de 12.5 escanteios",
   },
-  // Cartões
   { group: "Cartões Over", value: "cart_ov_1_5", label: "Mais de 1.5 cartões" },
   { group: "Cartões Over", value: "cart_ov_2_5", label: "Mais de 2.5 cartões" },
   { group: "Cartões Over", value: "cart_ov_3_5", label: "Mais de 3.5 cartões" },
@@ -221,14 +202,12 @@ const MERCADOS = [
     value: "cart_un_5_5",
     label: "Menos de 5.5 cartões",
   },
-  // Handicap
   { group: "Handicap", value: "hc_casa_1", label: "Handicap mandante -1" },
   { group: "Handicap", value: "hc_casa_2", label: "Handicap mandante -2" },
   { group: "Handicap", value: "hc_fora_1", label: "Handicap visitante -1" },
   { group: "Handicap", value: "hc_fora_2", label: "Handicap visitante -2" },
   { group: "Handicap", value: "hc_casa_p1", label: "Handicap mandante +1" },
   { group: "Handicap", value: "hc_fora_p1", label: "Handicap visitante +1" },
-  // Intervalo
   {
     group: "Intervalo",
     value: "ht_vit_casa",
@@ -250,7 +229,6 @@ const MERCADOS = [
     value: "ht_over_1_5",
     label: "Mais de 1.5 gols no 1º tempo",
   },
-  // Placar exato
   { group: "Placar Exato", value: "placar_1_0", label: "Placar 1-0" },
   { group: "Placar Exato", value: "placar_2_0", label: "Placar 2-0" },
   { group: "Placar Exato", value: "placar_2_1", label: "Placar 2-1" },
@@ -282,20 +260,20 @@ type Aposta = {
 type SelecaoMultipla = {
   jogo: string;
   mercado: string;
-  odd: number;
+  odd: number; // odd do JOGO inteiro (não por mercado)
 };
 
-// Agrupa seleções por jogo
+// Jogo agrupado na múltipla — odd é do jogo, mercados são só descritivos
 type JogoMultipla = {
   jogo: string;
-  mercados: { mercado: string; odd: number }[];
+  odd: number; // ← odd única por jogo
+  mercados: string[]; // lista de mercados selecionados (sem odd individual)
 };
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 function labelMercado(value: string) {
   return MERCADOS.find((m) => m.value === value)?.label || value;
 }
-
 const groups = [...new Set(MERCADOS.map((m) => m.group))];
 
 const SelectJogo = ({
@@ -348,7 +326,7 @@ const SelectMercado = ({
   </select>
 );
 
-// ─── Página principal ────────────────────────────────────────────────────────
+// ─── Página ──────────────────────────────────────────────────────────────────
 export default function ApostasPage() {
   const [apostas, setApostas] = useState<Aposta[]>([]);
   const [filtro, setFiltro] = useState("todos");
@@ -364,26 +342,26 @@ export default function ApostasPage() {
     stake: "",
   });
 
-  // Form múltipla — agrupado por jogo
+  // Form múltipla — odd por jogo
   const [jogosMultipla, setJogosMultipla] = useState<JogoMultipla[]>([
-    { jogo: "", mercados: [{ mercado: "", odd: 1.5 }] },
+    { jogo: "", odd: 1.5, mercados: [""] },
   ]);
   const [oddMultiplaManual, setOddMultiplaManual] = useState("");
   const [stakeMultipla, setStakeMultipla] = useState("");
   const [editarOddManual, setEditarOddManual] = useState(false);
 
-  // Todas as seleções flattenadas para cálculo
-  const todasSelecoes: SelecaoMultipla[] = jogosMultipla.flatMap((j) =>
-    j.mercados.map((m) => ({ jogo: j.jogo, mercado: m.mercado, odd: m.odd })),
-  );
-
   const oddCalculada = parseFloat(
-    todasSelecoes.reduce((acc, s) => acc * (s.odd || 1), 1).toFixed(2),
+    jogosMultipla.reduce((acc, j) => acc * (j.odd || 1), 1).toFixed(2),
   );
   const oddFinal =
     editarOddManual && oddMultiplaManual
       ? parseFloat(oddMultiplaManual)
       : oddCalculada;
+
+  const totalSelecoes = jogosMultipla.reduce(
+    (acc, j) => acc + j.mercados.filter(Boolean).length,
+    0,
+  );
 
   useEffect(() => {
     loadApostas();
@@ -423,7 +401,6 @@ export default function ApostasPage() {
       .eq("user_id", userId);
   }
 
-  // ── Aposta simples ──
   async function handleSimples(e: React.FormEvent) {
     e.preventDefault();
     if (!formSimples.jogo || !formSimples.mercado) return;
@@ -448,26 +425,31 @@ export default function ApostasPage() {
     setLoading(false);
   }
 
-  // ── Aposta múltipla ──
   async function handleMultipla(e: React.FormEvent) {
     e.preventDefault();
-    const invalidas = jogosMultipla.some(
-      (j) => !j.jogo || j.mercados.some((m) => !m.mercado),
-    );
-    if (invalidas) return;
+    if (jogosMultipla.some((j) => !j.jogo || j.mercados.every((m) => !m)))
+      return;
     setLoading(true);
     const {
       data: { user },
     } = await supabase.auth.getUser();
     const stake = parseFloat(stakeMultipla);
-    const totalSel = todasSelecoes.length;
-    const partida = `Múltipla (${totalSel} seleção${totalSel > 1 ? "ões" : ""})`;
+
+    // Monta seleções flattenadas para salvar
+    const selecoes: SelecaoMultipla[] = jogosMultipla.flatMap((j) =>
+      j.mercados
+        .filter(Boolean)
+        .map((m) => ({ jogo: j.jogo, mercado: m, odd: j.odd })),
+    );
+
+    const partida = `Múltipla (${jogosMultipla.length} jogo${jogosMultipla.length > 1 ? "s" : ""})`;
     const descricao = jogosMultipla
       .map(
         (j) =>
-          `${j.jogo}: ${j.mercados.map((m) => labelMercado(m.mercado)).join(" + ")}`,
+          `${j.jogo} [${j.mercados.filter(Boolean).map(labelMercado).join(" + ")}] @${j.odd}`,
       )
       .join(" | ");
+
     await supabase.from("apostas").insert({
       user_id: user!.id,
       tipo: "multipla",
@@ -477,9 +459,10 @@ export default function ApostasPage() {
       stake,
       retorno: stake * oddFinal,
       resultado: "pendente",
-      selecoes: todasSelecoes,
+      selecoes,
     });
-    setJogosMultipla([{ jogo: "", mercados: [{ mercado: "", odd: 1.5 }] }]);
+
+    setJogosMultipla([{ jogo: "", odd: 1.5, mercados: [""] }]);
     setStakeMultipla("");
     setOddMultiplaManual("");
     setEditarOddManual(false);
@@ -547,56 +530,37 @@ export default function ApostasPage() {
 
   // ── Helpers múltipla ──
   function addJogo() {
-    setJogosMultipla((prev) => [
-      ...prev,
-      { jogo: "", mercados: [{ mercado: "", odd: 1.5 }] },
-    ]);
+    setJogosMultipla((p) => [...p, { jogo: "", odd: 1.5, mercados: [""] }]);
   }
-
   function removeJogo(ji: number) {
-    setJogosMultipla((prev) => prev.filter((_, i) => i !== ji));
+    setJogosMultipla((p) => p.filter((_, i) => i !== ji));
   }
-
-  function updateJogo(ji: number, jogo: string) {
-    setJogosMultipla((prev) =>
-      prev.map((j, i) => (i === ji ? { ...j, jogo } : j)),
+  function updateJogoField(ji: number, field: "jogo" | "odd", value: any) {
+    setJogosMultipla((p) =>
+      p.map((j, i) => (i === ji ? { ...j, [field]: value } : j)),
     );
   }
-
   function addMercado(ji: number) {
-    setJogosMultipla((prev) =>
-      prev.map((j, i) =>
-        i === ji
-          ? { ...j, mercados: [...j.mercados, { mercado: "", odd: 1.5 }] }
-          : j,
-      ),
+    setJogosMultipla((p) =>
+      p.map((j, i) => (i === ji ? { ...j, mercados: [...j.mercados, ""] } : j)),
     );
   }
-
   function removeMercado(ji: number, mi: number) {
-    setJogosMultipla((prev) =>
-      prev.map((j, i) =>
+    setJogosMultipla((p) =>
+      p.map((j, i) =>
         i === ji
           ? { ...j, mercados: j.mercados.filter((_, idx) => idx !== mi) }
           : j,
       ),
     );
   }
-
-  function updateMercado(
-    ji: number,
-    mi: number,
-    field: "mercado" | "odd",
-    value: any,
-  ) {
-    setJogosMultipla((prev) =>
-      prev.map((j, i) =>
+  function updateMercado(ji: number, mi: number, value: string) {
+    setJogosMultipla((p) =>
+      p.map((j, i) =>
         i === ji
           ? {
               ...j,
-              mercados: j.mercados.map((m, idx) =>
-                idx === mi ? { ...m, [field]: value } : m,
-              ),
+              mercados: j.mercados.map((m, idx) => (idx === mi ? value : m)),
             }
           : j,
       ),
@@ -611,7 +575,6 @@ export default function ApostasPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-white">🎯 Minhas Apostas</h1>
 
-      {/* ── Formulário ── */}
       <Card className="bg-gray-900 border-gray-800">
         <CardHeader>
           <div className="flex items-center justify-between flex-wrap gap-3">
@@ -727,7 +690,6 @@ export default function ApostasPage() {
                   key={ji}
                   className="bg-gray-800 rounded-xl p-4 space-y-3 border border-gray-700"
                 >
-                  {/* Cabeçalho do jogo */}
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-yellow-400 uppercase tracking-wider">
                       ⚽ Jogo {ji + 1}
@@ -736,77 +698,76 @@ export default function ApostasPage() {
                       <button
                         type="button"
                         onClick={() => removeJogo(ji)}
-                        className="text-gray-500 hover:text-red-400 text-sm transition-colors"
+                        className="text-gray-500 hover:text-red-400 text-xs transition-colors"
                       >
                         🗑️ Remover jogo
                       </button>
                     )}
                   </div>
 
-                  {/* Seletor de jogo */}
-                  <SelectJogo
-                    value={jogoItem.jogo}
-                    onChange={(v) => updateJogo(ji, v)}
-                  />
+                  {/* Jogo + Odd do jogo na mesma linha */}
+                  <div className="flex gap-3 items-end">
+                    <div className="flex-1">
+                      <Label className="text-gray-400 text-xs mb-1 block">
+                        Jogo
+                      </Label>
+                      <SelectJogo
+                        value={jogoItem.jogo}
+                        onChange={(v) => updateJogoField(ji, "jogo", v)}
+                      />
+                    </div>
+                    <div className="w-28 shrink-0">
+                      <Label className="text-gray-400 text-xs mb-1 block">
+                        Odd do jogo
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="1.01"
+                        value={jogoItem.odd}
+                        onChange={(e) =>
+                          updateJogoField(ji, "odd", parseFloat(e.target.value))
+                        }
+                        className="bg-gray-700 border-gray-600 text-center font-bold text-yellow-400"
+                      />
+                    </div>
+                  </div>
 
-                  {/* Mercados desse jogo */}
+                  {/* Mercados — só descritivos, sem odd */}
                   <div className="space-y-2 pl-2 border-l-2 border-gray-700">
+                    <Label className="text-gray-400 text-xs block">
+                      Mercados selecionados
+                    </Label>
                     {jogoItem.mercados.map((m, mi) => (
-                      <div
-                        key={mi}
-                        className="flex items-center gap-2 flex-wrap"
-                      >
-                        <div className="flex-1 min-w-[180px]">
+                      <div key={mi} className="flex items-center gap-2">
+                        <div className="flex-1">
                           <SelectMercado
-                            value={m.mercado}
-                            onChange={(v) =>
-                              updateMercado(ji, mi, "mercado", v)
-                            }
-                          />
-                        </div>
-                        <div className="w-24">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="1.01"
-                            value={m.odd}
-                            onChange={(e) =>
-                              updateMercado(
-                                ji,
-                                mi,
-                                "odd",
-                                parseFloat(e.target.value),
-                              )
-                            }
-                            className="bg-gray-700 border-gray-600 text-center"
-                            placeholder="Odd"
+                            value={m}
+                            onChange={(v) => updateMercado(ji, mi, v)}
                           />
                         </div>
                         {jogoItem.mercados.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeMercado(ji, mi)}
-                            className="text-gray-500 hover:text-red-400 text-lg leading-none transition-colors"
+                            className="text-gray-500 hover:text-red-400 text-lg leading-none transition-colors shrink-0"
                           >
                             ×
                           </button>
                         )}
                       </div>
                     ))}
+                    <button
+                      type="button"
+                      onClick={() => addMercado(ji)}
+                      className="text-xs text-yellow-400 hover:text-yellow-300 transition-colors flex items-center gap-1"
+                    >
+                      + Adicionar mercado neste jogo
+                    </button>
                   </div>
-
-                  {/* Botão add mercado */}
-                  <button
-                    type="button"
-                    onClick={() => addMercado(ji)}
-                    className="text-xs text-yellow-400 hover:text-yellow-300 transition-colors flex items-center gap-1 pl-2"
-                  >
-                    + Adicionar mercado neste jogo
-                  </button>
                 </div>
               ))}
 
-              {/* Botão add jogo */}
               <button
                 type="button"
                 onClick={addJogo}
@@ -815,12 +776,12 @@ export default function ApostasPage() {
                 + Adicionar outro jogo
               </button>
 
-              {/* Resumo da odd + stake */}
+              {/* Resumo */}
               <div className="bg-gray-800 rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400 text-sm">
-                    Odd combinada ({todasSelecoes.length} seleção
-                    {todasSelecoes.length !== 1 ? "ões" : ""}):
+                    Odd combinada ({jogosMultipla.length} jogo
+                    {jogosMultipla.length > 1 ? "s" : ""}):
                   </span>
                   <span className="text-yellow-400 font-bold text-xl">
                     {oddCalculada.toFixed(2)}
@@ -842,7 +803,7 @@ export default function ApostasPage() {
                     htmlFor="editarOdd"
                     className="text-xs text-gray-400 cursor-pointer"
                   >
-                    Usar odd real da casa de apostas (diferente da calculada)
+                    Usar odd real da casa (diferente da calculada)
                   </label>
                 </div>
 
@@ -854,7 +815,7 @@ export default function ApostasPage() {
                     value={oddMultiplaManual}
                     onChange={(e) => setOddMultiplaManual(e.target.value)}
                     className="bg-gray-700 border-gray-600"
-                    placeholder={`Calculada automaticamente: ${oddCalculada.toFixed(2)}`}
+                    placeholder={`Calculada: ${oddCalculada.toFixed(2)}`}
                   />
                 )}
 
@@ -891,23 +852,21 @@ export default function ApostasPage() {
                 type="submit"
                 disabled={
                   loading ||
-                  jogosMultipla.some(
-                    (j) => !j.jogo || j.mercados.some((m) => !m.mercado),
-                  ) ||
+                  jogosMultipla.some((j) => !j.jogo) ||
                   !stakeMultipla
                 }
                 className="w-full bg-yellow-600 hover:bg-yellow-700 text-black font-bold"
               >
                 {loading
                   ? "Salvando..."
-                  : `🎰 Adicionar Múltipla (${todasSelecoes.length} seleção${todasSelecoes.length !== 1 ? "ões" : ""})`}
+                  : `🎰 Adicionar Múltipla (${jogosMultipla.length} jogo${jogosMultipla.length > 1 ? "s" : ""} · ${totalSelecoes} mercado${totalSelecoes !== 1 ? "s" : ""})`}
               </Button>
             </form>
           )}
         </CardContent>
       </Card>
 
-      {/* ── Filtros + exportar ── */}
+      {/* ── Filtros ── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
           {[
@@ -940,7 +899,7 @@ export default function ApostasPage() {
         </Button>
       </div>
 
-      {/* ── Lista de apostas ── */}
+      {/* ── Lista ── */}
       <div className="space-y-3">
         {apostasFiltradas.map((aposta) => (
           <Card key={aposta.id} className="bg-gray-900 border-gray-800">
@@ -964,7 +923,7 @@ export default function ApostasPage() {
                     </Badge>
                   </div>
 
-                  {/* Seleções agrupadas por jogo */}
+                  {/* Exibe seleções agrupadas por jogo */}
                   {aposta.tipo === "multipla" &&
                     aposta.selecoes &&
                     (() => {
@@ -974,21 +933,21 @@ export default function ApostasPage() {
                         porJogo[s.jogo].push(s);
                       });
                       return (
-                        <div className="mt-1 mb-2 space-y-1">
+                        <div className="mt-1 mb-2 space-y-1.5">
                           {Object.entries(porJogo).map(([jogo, sels]) => (
                             <div key={jogo}>
-                              <p className="text-[11px] text-gray-400 font-semibold">
+                              <p className="text-[12px] text-gray-300 font-semibold flex items-center gap-2">
                                 {jogo}
+                                <span className="text-yellow-400 font-bold">
+                                  @{sels[0].odd}
+                                </span>
                               </p>
                               {sels.map((s, i) => (
                                 <p
                                   key={i}
-                                  className="text-[11px] text-gray-500 pl-2"
+                                  className="text-[11px] text-gray-500 pl-3"
                                 >
-                                  ↳ {labelMercado(s.mercado)} ·{" "}
-                                  <span className="text-yellow-400">
-                                    {s.odd}
-                                  </span>
+                                  ↳ {labelMercado(s.mercado)}
                                 </p>
                               ))}
                             </div>
