@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
-// ─── Dados fixos ───────────────────────────────────────────────────────────
+// ─── Jogos fixos Copa 2026 ──────────────────────────────────────────────────
 const JOGOS_COPA: Record<string, string[]> = {
   "Fase de Grupos": [
     "Brasil × Marrocos",
@@ -54,37 +54,215 @@ const JOGOS_COPA: Record<string, string[]> = {
     "Irã × Nova Zelândia",
     "Colômbia × Grécia",
     "Suíça × Jordânia",
+    "Egito × Nova Zelândia",
+    "Japão × Tunísia",
+    "Suécia × Tunísia",
   ],
 };
 
+// ─── Mercados completos ─────────────────────────────────────────────────────
 const MERCADOS = [
-  { value: "vit_casa", label: "Vitória do mandante" },
-  { value: "empate", label: "Empate" },
-  { value: "vit_fora", label: "Vitória do visitante" },
-  { value: "dupla_1x", label: "Dupla chance — Mandante ou Empate (1X)" },
-  { value: "dupla_x2", label: "Dupla chance — Empate ou Visitante (X2)" },
-  { value: "dupla_12", label: "Dupla chance — Mandante ou Visitante (12)" },
-  { value: "btts_sim", label: "Ambas marcam — Sim (BTTS)" },
-  { value: "btts_nao", label: "Ambas marcam — Não" },
-  { value: "over_0_5", label: "Mais de 0.5 gols" },
-  { value: "over_1_5", label: "Mais de 1.5 gols" },
-  { value: "over_2_5", label: "Mais de 2.5 gols" },
-  { value: "over_3_5", label: "Mais de 3.5 gols" },
-  { value: "under_0_5", label: "Menos de 0.5 gols" },
-  { value: "under_1_5", label: "Menos de 1.5 gols" },
-  { value: "under_2_5", label: "Menos de 2.5 gols" },
-  { value: "under_3_5", label: "Menos de 3.5 gols" },
-  { value: "cantos_over_8", label: "Mais de 8.5 escanteios" },
-  { value: "cantos_over_9", label: "Mais de 9.5 escanteios" },
-  { value: "cantos_over_10", label: "Mais de 10.5 escanteios" },
-  { value: "cantos_under_8", label: "Menos de 8.5 escanteios" },
-  { value: "cantos_under_9", label: "Menos de 9.5 escanteios" },
-  { value: "cartoes_over_3", label: "Mais de 3.5 cartões" },
-  { value: "cartoes_over_4", label: "Mais de 4.5 cartões" },
-  { value: "hc_casa_1", label: "Handicap mandante -1" },
-  { value: "hc_fora_1", label: "Handicap visitante -1" },
-  { value: "intervalo_vit_casa", label: "Vence mandante no intervalo" },
-  { value: "intervalo_empate", label: "Empate no intervalo" },
+  // Resultado
+  { group: "Resultado", value: "vit_casa", label: "Vitória do mandante" },
+  { group: "Resultado", value: "empate", label: "Empate" },
+  { group: "Resultado", value: "vit_fora", label: "Vitória do visitante" },
+  {
+    group: "Resultado",
+    value: "dupla_1x",
+    label: "Dupla chance 1X (Mandante ou Empate)",
+  },
+  {
+    group: "Resultado",
+    value: "dupla_x2",
+    label: "Dupla chance X2 (Empate ou Visitante)",
+  },
+  {
+    group: "Resultado",
+    value: "dupla_12",
+    label: "Dupla chance 12 (Mandante ou Visitante)",
+  },
+  // Gols — Over
+  { group: "Gols Over", value: "over_0_5", label: "Mais de 0.5 gols" },
+  { group: "Gols Over", value: "over_1_5", label: "Mais de 1.5 gols" },
+  { group: "Gols Over", value: "over_2_5", label: "Mais de 2.5 gols" },
+  { group: "Gols Over", value: "over_3_5", label: "Mais de 3.5 gols" },
+  { group: "Gols Over", value: "over_4_5", label: "Mais de 4.5 gols" },
+  { group: "Gols Over", value: "over_5_5", label: "Mais de 5.5 gols" },
+  // Gols — Under
+  { group: "Gols Under", value: "under_0_5", label: "Menos de 0.5 gols" },
+  { group: "Gols Under", value: "under_1_5", label: "Menos de 1.5 gols" },
+  { group: "Gols Under", value: "under_2_5", label: "Menos de 2.5 gols" },
+  { group: "Gols Under", value: "under_3_5", label: "Menos de 3.5 gols" },
+  { group: "Gols Under", value: "under_4_5", label: "Menos de 4.5 gols" },
+  { group: "Gols Under", value: "under_5_5", label: "Menos de 5.5 gols" },
+  // BTTS
+  { group: "Ambas Marcam", value: "btts_sim", label: "Ambas marcam — Sim" },
+  { group: "Ambas Marcam", value: "btts_nao", label: "Ambas marcam — Não" },
+  // Escanteios — Over
+  {
+    group: "Escanteios Over",
+    value: "cant_ov_4_5",
+    label: "Mais de 4.5 escanteios",
+  },
+  {
+    group: "Escanteios Over",
+    value: "cant_ov_5_5",
+    label: "Mais de 5.5 escanteios",
+  },
+  {
+    group: "Escanteios Over",
+    value: "cant_ov_6_5",
+    label: "Mais de 6.5 escanteios",
+  },
+  {
+    group: "Escanteios Over",
+    value: "cant_ov_7_5",
+    label: "Mais de 7.5 escanteios",
+  },
+  {
+    group: "Escanteios Over",
+    value: "cant_ov_8_5",
+    label: "Mais de 8.5 escanteios",
+  },
+  {
+    group: "Escanteios Over",
+    value: "cant_ov_9_5",
+    label: "Mais de 9.5 escanteios",
+  },
+  {
+    group: "Escanteios Over",
+    value: "cant_ov_10_5",
+    label: "Mais de 10.5 escanteios",
+  },
+  {
+    group: "Escanteios Over",
+    value: "cant_ov_11_5",
+    label: "Mais de 11.5 escanteios",
+  },
+  {
+    group: "Escanteios Over",
+    value: "cant_ov_12_5",
+    label: "Mais de 12.5 escanteios",
+  },
+  {
+    group: "Escanteios Over",
+    value: "cant_ov_13_5",
+    label: "Mais de 13.5 escanteios",
+  },
+  // Escanteios — Under
+  {
+    group: "Escanteios Under",
+    value: "cant_un_4_5",
+    label: "Menos de 4.5 escanteios",
+  },
+  {
+    group: "Escanteios Under",
+    value: "cant_un_5_5",
+    label: "Menos de 5.5 escanteios",
+  },
+  {
+    group: "Escanteios Under",
+    value: "cant_un_6_5",
+    label: "Menos de 6.5 escanteios",
+  },
+  {
+    group: "Escanteios Under",
+    value: "cant_un_7_5",
+    label: "Menos de 7.5 escanteios",
+  },
+  {
+    group: "Escanteios Under",
+    value: "cant_un_8_5",
+    label: "Menos de 8.5 escanteios",
+  },
+  {
+    group: "Escanteios Under",
+    value: "cant_un_9_5",
+    label: "Menos de 9.5 escanteios",
+  },
+  {
+    group: "Escanteios Under",
+    value: "cant_un_10_5",
+    label: "Menos de 10.5 escanteios",
+  },
+  {
+    group: "Escanteios Under",
+    value: "cant_un_11_5",
+    label: "Menos de 11.5 escanteios",
+  },
+  {
+    group: "Escanteios Under",
+    value: "cant_un_12_5",
+    label: "Menos de 12.5 escanteios",
+  },
+  // Cartões
+  { group: "Cartões Over", value: "cart_ov_1_5", label: "Mais de 1.5 cartões" },
+  { group: "Cartões Over", value: "cart_ov_2_5", label: "Mais de 2.5 cartões" },
+  { group: "Cartões Over", value: "cart_ov_3_5", label: "Mais de 3.5 cartões" },
+  { group: "Cartões Over", value: "cart_ov_4_5", label: "Mais de 4.5 cartões" },
+  { group: "Cartões Over", value: "cart_ov_5_5", label: "Mais de 5.5 cartões" },
+  {
+    group: "Cartões Under",
+    value: "cart_un_2_5",
+    label: "Menos de 2.5 cartões",
+  },
+  {
+    group: "Cartões Under",
+    value: "cart_un_3_5",
+    label: "Menos de 3.5 cartões",
+  },
+  {
+    group: "Cartões Under",
+    value: "cart_un_4_5",
+    label: "Menos de 4.5 cartões",
+  },
+  {
+    group: "Cartões Under",
+    value: "cart_un_5_5",
+    label: "Menos de 5.5 cartões",
+  },
+  // Handicap
+  { group: "Handicap", value: "hc_casa_1", label: "Handicap mandante -1" },
+  { group: "Handicap", value: "hc_casa_2", label: "Handicap mandante -2" },
+  { group: "Handicap", value: "hc_fora_1", label: "Handicap visitante -1" },
+  { group: "Handicap", value: "hc_fora_2", label: "Handicap visitante -2" },
+  { group: "Handicap", value: "hc_casa_p1", label: "Handicap mandante +1" },
+  { group: "Handicap", value: "hc_fora_p1", label: "Handicap visitante +1" },
+  // Intervalo
+  {
+    group: "Intervalo",
+    value: "ht_vit_casa",
+    label: "Mandante vence no intervalo",
+  },
+  { group: "Intervalo", value: "ht_empate", label: "Empate no intervalo" },
+  {
+    group: "Intervalo",
+    value: "ht_vit_fora",
+    label: "Visitante vence no intervalo",
+  },
+  {
+    group: "Intervalo",
+    value: "ht_over_0_5",
+    label: "Mais de 0.5 gols no 1º tempo",
+  },
+  {
+    group: "Intervalo",
+    value: "ht_over_1_5",
+    label: "Mais de 1.5 gols no 1º tempo",
+  },
+  // Placar exato
+  { group: "Placar Exato", value: "placar_1_0", label: "Placar 1-0" },
+  { group: "Placar Exato", value: "placar_2_0", label: "Placar 2-0" },
+  { group: "Placar Exato", value: "placar_2_1", label: "Placar 2-1" },
+  { group: "Placar Exato", value: "placar_3_0", label: "Placar 3-0" },
+  { group: "Placar Exato", value: "placar_3_1", label: "Placar 3-1" },
+  { group: "Placar Exato", value: "placar_3_2", label: "Placar 3-2" },
+  { group: "Placar Exato", value: "placar_0_0", label: "Placar 0-0" },
+  { group: "Placar Exato", value: "placar_1_1", label: "Placar 1-1" },
+  { group: "Placar Exato", value: "placar_2_2", label: "Placar 2-2" },
+  { group: "Placar Exato", value: "placar_0_1", label: "Placar 0-1" },
+  { group: "Placar Exato", value: "placar_0_2", label: "Placar 0-2" },
+  { group: "Placar Exato", value: "placar_1_2", label: "Placar 1-2" },
 ];
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -107,14 +285,70 @@ type SelecaoMultipla = {
   odd: number;
 };
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-const todosJogos = Object.values(JOGOS_COPA).flat();
+// Agrupa seleções por jogo
+type JogoMultipla = {
+  jogo: string;
+  mercados: { mercado: string; odd: number }[];
+};
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
 function labelMercado(value: string) {
   return MERCADOS.find((m) => m.value === value)?.label || value;
 }
 
-// ─── Componente principal ───────────────────────────────────────────────────
+const groups = [...new Set(MERCADOS.map((m) => m.group))];
+
+const SelectJogo = ({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) => (
+  <select
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    className="w-full bg-gray-800 border border-gray-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-600"
+  >
+    <option value="">Selecione o jogo...</option>
+    {Object.entries(JOGOS_COPA).map(([fase, jogos]) => (
+      <optgroup key={fase} label={fase}>
+        {jogos.map((j) => (
+          <option key={j} value={j}>
+            {j}
+          </option>
+        ))}
+      </optgroup>
+    ))}
+  </select>
+);
+
+const SelectMercado = ({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) => (
+  <select
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    className="w-full bg-gray-800 border border-gray-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-600"
+  >
+    <option value="">Selecione o mercado...</option>
+    {groups.map((g) => (
+      <optgroup key={g} label={g}>
+        {MERCADOS.filter((m) => m.group === g).map((m) => (
+          <option key={m.value} value={m.value}>
+            {m.label}
+          </option>
+        ))}
+      </optgroup>
+    ))}
+  </select>
+);
+
+// ─── Página principal ────────────────────────────────────────────────────────
 export default function ApostasPage() {
   const [apostas, setApostas] = useState<Aposta[]>([]);
   const [filtro, setFiltro] = useState("todos");
@@ -126,25 +360,30 @@ export default function ApostasPage() {
   const [formSimples, setFormSimples] = useState({
     jogo: "",
     mercado: "",
-    oddCustom: "",
+    odd: "",
     stake: "",
   });
 
-  // Form múltipla
-  const [selecoes, setSelecoes] = useState<SelecaoMultipla[]>([
-    { jogo: "", mercado: "", odd: 1.5 },
+  // Form múltipla — agrupado por jogo
+  const [jogosMultipla, setJogosMultipla] = useState<JogoMultipla[]>([
+    { jogo: "", mercados: [{ mercado: "", odd: 1.5 }] },
   ]);
   const [oddMultiplaManual, setOddMultiplaManual] = useState("");
   const [stakeMultipla, setStakeMultipla] = useState("");
   const [editarOddManual, setEditarOddManual] = useState(false);
 
-  const oddMultiplaCalculada = parseFloat(
-    selecoes.reduce((acc, s) => acc * (s.odd || 1), 1).toFixed(2),
+  // Todas as seleções flattenadas para cálculo
+  const todasSelecoes: SelecaoMultipla[] = jogosMultipla.flatMap((j) =>
+    j.mercados.map((m) => ({ jogo: j.jogo, mercado: m.mercado, odd: m.odd })),
   );
-  const oddMultiplaFinal =
+
+  const oddCalculada = parseFloat(
+    todasSelecoes.reduce((acc, s) => acc * (s.odd || 1), 1).toFixed(2),
+  );
+  const oddFinal =
     editarOddManual && oddMultiplaManual
       ? parseFloat(oddMultiplaManual)
-      : oddMultiplaCalculada;
+      : oddCalculada;
 
   useEffect(() => {
     loadApostas();
@@ -184,56 +423,63 @@ export default function ApostasPage() {
       .eq("user_id", userId);
   }
 
-  // ── Submete aposta simples ──
+  // ── Aposta simples ──
   async function handleSimples(e: React.FormEvent) {
     e.preventDefault();
+    if (!formSimples.jogo || !formSimples.mercado) return;
     setLoading(true);
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const odd = parseFloat(formSimples.oddCustom);
+    const odd = parseFloat(formSimples.odd);
     const stake = parseFloat(formSimples.stake);
-    const descricao = labelMercado(formSimples.mercado);
     await supabase.from("apostas").insert({
       user_id: user!.id,
       tipo: "simples",
       partida: formSimples.jogo,
-      descricao,
+      descricao: labelMercado(formSimples.mercado),
       odd,
       stake,
       retorno: stake * odd,
       resultado: "pendente",
     });
-    setFormSimples({ jogo: "", mercado: "", oddCustom: "", stake: "" });
+    setFormSimples({ jogo: "", mercado: "", odd: "", stake: "" });
     await loadApostas();
     setLoading(false);
   }
 
-  // ── Submete aposta múltipla ──
+  // ── Aposta múltipla ──
   async function handleMultipla(e: React.FormEvent) {
     e.preventDefault();
-    if (selecoes.some((s) => !s.jogo || !s.mercado)) return;
+    const invalidas = jogosMultipla.some(
+      (j) => !j.jogo || j.mercados.some((m) => !m.mercado),
+    );
+    if (invalidas) return;
     setLoading(true);
     const {
       data: { user },
     } = await supabase.auth.getUser();
     const stake = parseFloat(stakeMultipla);
-    const partida = `Múltipla (${selecoes.length} seleções)`;
-    const descricao = selecoes
-      .map((s) => `${s.jogo}: ${labelMercado(s.mercado)}`)
+    const totalSel = todasSelecoes.length;
+    const partida = `Múltipla (${totalSel} seleção${totalSel > 1 ? "ões" : ""})`;
+    const descricao = jogosMultipla
+      .map(
+        (j) =>
+          `${j.jogo}: ${j.mercados.map((m) => labelMercado(m.mercado)).join(" + ")}`,
+      )
       .join(" | ");
     await supabase.from("apostas").insert({
       user_id: user!.id,
       tipo: "multipla",
       partida,
       descricao,
-      odd: oddMultiplaFinal,
+      odd: oddFinal,
       stake,
-      retorno: stake * oddMultiplaFinal,
+      retorno: stake * oddFinal,
       resultado: "pendente",
-      selecoes,
+      selecoes: todasSelecoes,
     });
-    setSelecoes([{ jogo: "", mercado: "", odd: 1.5 }]);
+    setJogosMultipla([{ jogo: "", mercados: [{ mercado: "", odd: 1.5 }] }]);
     setStakeMultipla("");
     setOddMultiplaManual("");
     setEditarOddManual(false);
@@ -241,13 +487,11 @@ export default function ApostasPage() {
     setLoading(false);
   }
 
-  // ── Atualiza resultado ──
   async function handleResultado(
     id: string,
     resultado: string,
     stake: number,
     odd: number,
-    resultadoAnterior: string,
   ) {
     const {
       data: { user },
@@ -258,7 +502,6 @@ export default function ApostasPage() {
     await loadApostas();
   }
 
-  // ── Exclui aposta ──
   async function handleExcluir(id: string) {
     if (!confirm("Excluir esta aposta?")) return;
     const {
@@ -269,7 +512,6 @@ export default function ApostasPage() {
     await loadApostas();
   }
 
-  // ── Exportar CSV ──
   function exportCSV() {
     const headers = [
       "Data",
@@ -288,7 +530,7 @@ export default function ApostasPage() {
       a.descricao,
       a.odd,
       a.stake,
-      a.retorno?.toFixed(2),
+      Number(a.retorno).toFixed(2),
       a.resultado,
     ]);
     const csv = [headers, ...rows].map((r) => r.join(";")).join("\n");
@@ -303,62 +545,73 @@ export default function ApostasPage() {
     URL.revokeObjectURL(url);
   }
 
+  // ── Helpers múltipla ──
+  function addJogo() {
+    setJogosMultipla((prev) => [
+      ...prev,
+      { jogo: "", mercados: [{ mercado: "", odd: 1.5 }] },
+    ]);
+  }
+
+  function removeJogo(ji: number) {
+    setJogosMultipla((prev) => prev.filter((_, i) => i !== ji));
+  }
+
+  function updateJogo(ji: number, jogo: string) {
+    setJogosMultipla((prev) =>
+      prev.map((j, i) => (i === ji ? { ...j, jogo } : j)),
+    );
+  }
+
+  function addMercado(ji: number) {
+    setJogosMultipla((prev) =>
+      prev.map((j, i) =>
+        i === ji
+          ? { ...j, mercados: [...j.mercados, { mercado: "", odd: 1.5 }] }
+          : j,
+      ),
+    );
+  }
+
+  function removeMercado(ji: number, mi: number) {
+    setJogosMultipla((prev) =>
+      prev.map((j, i) =>
+        i === ji
+          ? { ...j, mercados: j.mercados.filter((_, idx) => idx !== mi) }
+          : j,
+      ),
+    );
+  }
+
+  function updateMercado(
+    ji: number,
+    mi: number,
+    field: "mercado" | "odd",
+    value: any,
+  ) {
+    setJogosMultipla((prev) =>
+      prev.map((j, i) =>
+        i === ji
+          ? {
+              ...j,
+              mercados: j.mercados.map((m, idx) =>
+                idx === mi ? { ...m, [field]: value } : m,
+              ),
+            }
+          : j,
+      ),
+    );
+  }
+
   const apostasFiltradas = apostas.filter(
     (a) => filtro === "todos" || a.resultado === filtro,
-  );
-
-  // ── Selects reutilizáveis ──
-  const SelectJogo = ({
-    value,
-    onChange,
-  }: {
-    value: string;
-    onChange: (v: string) => void;
-  }) => (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full bg-gray-800 border border-gray-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-600"
-    >
-      <option value="">Selecione o jogo...</option>
-      {Object.entries(JOGOS_COPA).map(([fase, jogos]) => (
-        <optgroup key={fase} label={fase}>
-          {jogos.map((j) => (
-            <option key={j} value={j}>
-              {j}
-            </option>
-          ))}
-        </optgroup>
-      ))}
-    </select>
-  );
-
-  const SelectMercado = ({
-    value,
-    onChange,
-  }: {
-    value: string;
-    onChange: (v: string) => void;
-  }) => (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full bg-gray-800 border border-gray-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-600"
-    >
-      <option value="">Selecione o mercado...</option>
-      {MERCADOS.map((m) => (
-        <option key={m.value} value={m.value}>
-          {m.label}
-        </option>
-      ))}
-    </select>
   );
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-white">🎯 Minhas Apostas</h1>
 
-      {/* ── Abas nova aposta ── */}
+      {/* ── Formulário ── */}
       <Card className="bg-gray-900 border-gray-800">
         <CardHeader>
           <div className="flex items-center justify-between flex-wrap gap-3">
@@ -381,7 +634,7 @@ export default function ApostasPage() {
         </CardHeader>
 
         <CardContent>
-          {/* ── FORM SIMPLES ── */}
+          {/* ── SIMPLES ── */}
           {aba === "simples" && (
             <form onSubmit={handleSimples} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -415,12 +668,9 @@ export default function ApostasPage() {
                     type="number"
                     step="0.01"
                     min="1.01"
-                    value={formSimples.oddCustom}
+                    value={formSimples.odd}
                     onChange={(e) =>
-                      setFormSimples({
-                        ...formSimples,
-                        oddCustom: e.target.value,
-                      })
+                      setFormSimples({ ...formSimples, odd: e.target.value })
                     }
                     className="bg-gray-800 border-gray-700"
                     placeholder="Ex: 1.85"
@@ -445,7 +695,7 @@ export default function ApostasPage() {
                   />
                 </div>
               </div>
-              {formSimples.oddCustom && formSimples.stake && (
+              {formSimples.odd && formSimples.stake && (
                 <div className="bg-gray-800 rounded-lg p-3 flex justify-between">
                   <span className="text-gray-400 text-sm">
                     Retorno potencial:
@@ -454,7 +704,7 @@ export default function ApostasPage() {
                     R${" "}
                     {(
                       parseFloat(formSimples.stake) *
-                      parseFloat(formSimples.oddCustom)
+                      parseFloat(formSimples.odd)
                     ).toFixed(2)}
                   </span>
                 </div>
@@ -469,109 +719,111 @@ export default function ApostasPage() {
             </form>
           )}
 
-          {/* ── FORM MÚLTIPLA ── */}
+          {/* ── MÚLTIPLA ── */}
           {aba === "multipla" && (
             <form onSubmit={handleMultipla} className="space-y-4">
-              {/* Seleções */}
-              <div className="space-y-3">
-                {selecoes.map((sel, i) => (
-                  <div key={i} className="bg-gray-800 rounded-xl p-3 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-yellow-400">
-                        Seleção {i + 1}
-                      </span>
-                      {selecoes.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSelecoes((prev) =>
-                              prev.filter((_, idx) => idx !== i),
-                            )
-                          }
-                          className="text-gray-500 hover:text-red-400 text-lg leading-none transition-colors"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      <div className="md:col-span-1">
-                        <Label className="text-gray-400 text-xs mb-1 block">
-                          Jogo
-                        </Label>
-                        <SelectJogo
-                          value={sel.jogo}
-                          onChange={(v) =>
-                            setSelecoes((prev) =>
-                              prev.map((s, idx) =>
-                                idx === i ? { ...s, jogo: v } : s,
-                              ),
-                            )
-                          }
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-gray-400 text-xs mb-1 block">
-                          Mercado
-                        </Label>
-                        <SelectMercado
-                          value={sel.mercado}
-                          onChange={(v) =>
-                            setSelecoes((prev) =>
-                              prev.map((s, idx) =>
-                                idx === i ? { ...s, mercado: v } : s,
-                              ),
-                            )
-                          }
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-gray-400 text-xs mb-1 block">
-                          Odd
-                        </Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="1.01"
-                          value={sel.odd}
-                          onChange={(e) =>
-                            setSelecoes((prev) =>
-                              prev.map((s, idx) =>
-                                idx === i
-                                  ? { ...s, odd: parseFloat(e.target.value) }
-                                  : s,
-                              ),
-                            )
-                          }
-                          className="bg-gray-700 border-gray-600"
-                        />
-                      </div>
-                    </div>
+              {jogosMultipla.map((jogoItem, ji) => (
+                <div
+                  key={ji}
+                  className="bg-gray-800 rounded-xl p-4 space-y-3 border border-gray-700"
+                >
+                  {/* Cabeçalho do jogo */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-yellow-400 uppercase tracking-wider">
+                      ⚽ Jogo {ji + 1}
+                    </span>
+                    {jogosMultipla.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeJogo(ji)}
+                        className="text-gray-500 hover:text-red-400 text-sm transition-colors"
+                      >
+                        🗑️ Remover jogo
+                      </button>
+                    )}
                   </div>
-                ))}
-              </div>
 
+                  {/* Seletor de jogo */}
+                  <SelectJogo
+                    value={jogoItem.jogo}
+                    onChange={(v) => updateJogo(ji, v)}
+                  />
+
+                  {/* Mercados desse jogo */}
+                  <div className="space-y-2 pl-2 border-l-2 border-gray-700">
+                    {jogoItem.mercados.map((m, mi) => (
+                      <div
+                        key={mi}
+                        className="flex items-center gap-2 flex-wrap"
+                      >
+                        <div className="flex-1 min-w-[180px]">
+                          <SelectMercado
+                            value={m.mercado}
+                            onChange={(v) =>
+                              updateMercado(ji, mi, "mercado", v)
+                            }
+                          />
+                        </div>
+                        <div className="w-24">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="1.01"
+                            value={m.odd}
+                            onChange={(e) =>
+                              updateMercado(
+                                ji,
+                                mi,
+                                "odd",
+                                parseFloat(e.target.value),
+                              )
+                            }
+                            className="bg-gray-700 border-gray-600 text-center"
+                            placeholder="Odd"
+                          />
+                        </div>
+                        {jogoItem.mercados.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeMercado(ji, mi)}
+                            className="text-gray-500 hover:text-red-400 text-lg leading-none transition-colors"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Botão add mercado */}
+                  <button
+                    type="button"
+                    onClick={() => addMercado(ji)}
+                    className="text-xs text-yellow-400 hover:text-yellow-300 transition-colors flex items-center gap-1 pl-2"
+                  >
+                    + Adicionar mercado neste jogo
+                  </button>
+                </div>
+              ))}
+
+              {/* Botão add jogo */}
               <button
                 type="button"
-                onClick={() =>
-                  setSelecoes((prev) => [
-                    ...prev,
-                    { jogo: "", mercado: "", odd: 1.5 },
-                  ])
-                }
-                className="w-full border border-dashed border-gray-600 text-gray-400 hover:text-yellow-400 hover:border-yellow-600 py-2 rounded-xl text-sm transition-colors"
+                onClick={addJogo}
+                className="w-full border border-dashed border-gray-600 text-gray-400 hover:text-yellow-400 hover:border-yellow-600 py-2.5 rounded-xl text-sm transition-colors"
               >
-                + Adicionar seleção
+                + Adicionar outro jogo
               </button>
 
-              {/* Odd combinada */}
+              {/* Resumo da odd + stake */}
               <div className="bg-gray-800 rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400 text-sm">
-                    Odd combinada ({selecoes.length} seleções):
+                    Odd combinada ({todasSelecoes.length} seleção
+                    {todasSelecoes.length !== 1 ? "ões" : ""}):
                   </span>
-                  <span className="text-yellow-400 font-bold text-lg">
-                    {oddMultiplaCalculada.toFixed(2)}
+                  <span className="text-yellow-400 font-bold text-xl">
+                    {oddCalculada.toFixed(2)}
                   </span>
                 </div>
 
@@ -584,13 +836,13 @@ export default function ApostasPage() {
                       setEditarOddManual(e.target.checked);
                       if (!e.target.checked) setOddMultiplaManual("");
                     }}
-                    className="accent-yellow-500"
+                    className="accent-yellow-500 w-4 h-4"
                   />
                   <label
                     htmlFor="editarOdd"
                     className="text-xs text-gray-400 cursor-pointer"
                   >
-                    Editar odd manualmente (ex: odd real da casa)
+                    Usar odd real da casa de apostas (diferente da calculada)
                   </label>
                 </div>
 
@@ -602,7 +854,7 @@ export default function ApostasPage() {
                     value={oddMultiplaManual}
                     onChange={(e) => setOddMultiplaManual(e.target.value)}
                     className="bg-gray-700 border-gray-600"
-                    placeholder={`Calculada: ${oddMultiplaCalculada.toFixed(2)}`}
+                    placeholder={`Calculada automaticamente: ${oddCalculada.toFixed(2)}`}
                   />
                 )}
 
@@ -626,9 +878,9 @@ export default function ApostasPage() {
                     <Label className="text-gray-400 text-xs mb-1 block">
                       Retorno potencial
                     </Label>
-                    <div className="bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-green-400 font-bold text-sm">
+                    <div className="bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-green-400 font-bold">
                       {stakeMultipla
-                        ? `R$ ${(parseFloat(stakeMultipla) * oddMultiplaFinal).toFixed(2)}`
+                        ? `R$ ${(parseFloat(stakeMultipla) * oddFinal).toFixed(2)}`
                         : "R$ 0.00"}
                     </div>
                   </div>
@@ -639,14 +891,16 @@ export default function ApostasPage() {
                 type="submit"
                 disabled={
                   loading ||
-                  selecoes.some((s) => !s.jogo || !s.mercado) ||
+                  jogosMultipla.some(
+                    (j) => !j.jogo || j.mercados.some((m) => !m.mercado),
+                  ) ||
                   !stakeMultipla
                 }
                 className="w-full bg-yellow-600 hover:bg-yellow-700 text-black font-bold"
               >
                 {loading
                   ? "Salvando..."
-                  : `🎰 Adicionar Múltipla (${selecoes.length} seleções)`}
+                  : `🎰 Adicionar Múltipla (${todasSelecoes.length} seleção${todasSelecoes.length !== 1 ? "ões" : ""})`}
               </Button>
             </form>
           )}
@@ -710,20 +964,38 @@ export default function ApostasPage() {
                     </Badge>
                   </div>
 
-                  {/* Seleções da múltipla */}
-                  {aposta.tipo === "multipla" && aposta.selecoes && (
-                    <div className="mt-1 mb-2 space-y-0.5">
-                      {aposta.selecoes.map((s, i) => (
-                        <p key={i} className="text-[11px] text-gray-500">
-                          <span className="text-gray-400">{s.jogo}</span>
-                          {" · "}
-                          {labelMercado(s.mercado)}
-                          {" · "}
-                          <span className="text-yellow-400">{s.odd}</span>
-                        </p>
-                      ))}
-                    </div>
-                  )}
+                  {/* Seleções agrupadas por jogo */}
+                  {aposta.tipo === "multipla" &&
+                    aposta.selecoes &&
+                    (() => {
+                      const porJogo: Record<string, SelecaoMultipla[]> = {};
+                      aposta.selecoes.forEach((s) => {
+                        if (!porJogo[s.jogo]) porJogo[s.jogo] = [];
+                        porJogo[s.jogo].push(s);
+                      });
+                      return (
+                        <div className="mt-1 mb-2 space-y-1">
+                          {Object.entries(porJogo).map(([jogo, sels]) => (
+                            <div key={jogo}>
+                              <p className="text-[11px] text-gray-400 font-semibold">
+                                {jogo}
+                              </p>
+                              {sels.map((s, i) => (
+                                <p
+                                  key={i}
+                                  className="text-[11px] text-gray-500 pl-2"
+                                >
+                                  ↳ {labelMercado(s.mercado)} ·{" "}
+                                  <span className="text-yellow-400">
+                                    {s.odd}
+                                  </span>
+                                </p>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
 
                   {aposta.tipo !== "multipla" && (
                     <p className="text-gray-400 text-xs mb-1">
@@ -760,7 +1032,6 @@ export default function ApostasPage() {
                             "ganhou",
                             aposta.stake,
                             aposta.odd,
-                            aposta.resultado,
                           )
                         }
                       >
@@ -775,7 +1046,6 @@ export default function ApostasPage() {
                             "perdeu",
                             aposta.stake,
                             aposta.odd,
-                            aposta.resultado,
                           )
                         }
                       >
@@ -805,7 +1075,6 @@ export default function ApostasPage() {
                             "pendente",
                             aposta.stake,
                             aposta.odd,
-                            aposta.resultado,
                           )
                         }
                       >
