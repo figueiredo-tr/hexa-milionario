@@ -373,27 +373,39 @@ function JogoCardDestaque({
   );
 }
 
-// Card MENOR (compacto)
+// Card MENOR (compacto) — agora clicável para virar destaque
 function JogoCardMenor({
   jogo,
   isAdmin,
   onEdit,
+  onSetDestaque,
 }: {
   jogo: JogoAnalise;
   isAdmin: boolean;
   onEdit: () => void;
+  onSetDestaque: () => void;
 }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+    <div
+      className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden cursor-pointer hover:border-green-700 hover:ring-1 hover:ring-green-700/40 transition-all group"
+      onClick={onSetDestaque}
+    >
       <div className="bg-gray-800/50 px-4 py-3 relative">
         {isAdmin && (
           <button
-            onClick={onEdit}
-            className="absolute top-2 right-2 text-gray-500 hover:text-white text-xs bg-gray-700 px-2 py-0.5 rounded-md transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            className="absolute top-2 right-2 text-gray-500 hover:text-white text-xs bg-gray-700 px-2 py-0.5 rounded-md transition-colors z-10"
           >
             ✏️ Editar
           </button>
         )}
+        {/* Hint de clique */}
+        <div className="absolute bottom-2 right-2 text-[9px] text-gray-600 group-hover:text-green-500 transition-colors pointer-events-none">
+          ↑ ver em destaque
+        </div>
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-col items-center gap-1 flex-1">
             <TeamLogo logo={jogo.logoHome} nome={jogo.casa} size="sm" />
@@ -498,12 +510,14 @@ export default function AnalisesJogos({ userEmail }: { userEmail: string }) {
   const [loading, setLoading] = useState(true);
   const [gerando, setGerando] = useState(false);
   const [editando, setEditando] = useState<JogoAnalise | null>(null);
+  const [destaqueId, setDestaqueId] = useState<string | null>(null);
 
   async function carregar(forcar = false) {
     setLoading(true);
     const res = await fetch(`/api/analises${forcar ? "?forcar=1" : ""}`);
     const data = await res.json();
     setJogos(data.jogos || []);
+    setDestaqueId(null); // reseta destaque ao recarregar
     setLoading(false);
     setGerando(false);
   }
@@ -523,8 +537,12 @@ export default function AnalisesJogos({ userEmail }: { userEmail: string }) {
     });
   }
 
-  const destaque = jogos[0];
-  const menores = jogos.slice(1);
+  // Determina qual é o destaque e quais são os menores
+  const destaqueIndex = destaqueId
+    ? jogos.findIndex((j) => j.id === destaqueId)
+    : 0;
+  const destaque = jogos[destaqueIndex >= 0 ? destaqueIndex : 0];
+  const menores = jogos.filter((j) => j.id !== destaque?.id);
 
   return (
     <div className="space-y-4">
@@ -574,7 +592,7 @@ export default function AnalisesJogos({ userEmail }: { userEmail: string }) {
             />
           )}
 
-          {/* Cards menores — 3 em linha */}
+          {/* Cards menores — clicáveis */}
           {menores.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {menores.map((jogo) => (
@@ -583,6 +601,7 @@ export default function AnalisesJogos({ userEmail }: { userEmail: string }) {
                   jogo={jogo}
                   isAdmin={isAdmin}
                   onEdit={() => setEditando(jogo)}
+                  onSetDestaque={() => setDestaqueId(jogo.id)}
                 />
               ))}
             </div>
