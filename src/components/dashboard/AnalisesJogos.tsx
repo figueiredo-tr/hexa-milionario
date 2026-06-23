@@ -28,19 +28,28 @@ type JogoAnalise = {
   favorito: "casa" | "fora" | "empate";
 };
 
-function TeamLogo({ logo, nome }: { logo: string; nome: string }) {
+function TeamLogo({
+  logo,
+  nome,
+  size = "md",
+}: {
+  logo: string;
+  nome: string;
+  size?: "sm" | "md" | "lg";
+}) {
+  const sizes = { sm: "w-6 h-6", md: "w-8 h-8", lg: "w-12 h-12" };
   if (logo)
     return (
       <img
         src={logo}
         alt={nome}
-        className="w-8 h-8 object-contain"
+        className={`${sizes[size]} object-contain`}
         onError={(e) => {
           (e.target as HTMLImageElement).style.display = "none";
         }}
       />
     );
-  return <span className="text-2xl">⚽</span>;
+  return <span className={size === "lg" ? "text-4xl" : "text-2xl"}>⚽</span>;
 }
 
 function EditModal({
@@ -74,80 +83,38 @@ function EditModal({
           ✏️ Editar — {form.casa} x {form.fora}
         </h3>
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-gray-400 text-xs mb-1 block">
-              Gols esp. {form.casa}
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={form.golsEsperadosCasa}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  golsEsperadosCasa: parseFloat(e.target.value),
-                })
-              }
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-600"
-            />
-          </div>
-          <div>
-            <label className="text-gray-400 text-xs mb-1 block">
-              Gols esp. {form.fora}
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={form.golsEsperadosFora}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  golsEsperadosFora: parseFloat(e.target.value),
-                })
-              }
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-600"
-            />
-          </div>
-          <div>
-            <label className="text-gray-400 text-xs mb-1 block">
-              % {form.casa} vence
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={form.probCasa}
-              onChange={(e) =>
-                setForm({ ...form, probCasa: parseFloat(e.target.value) })
-              }
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-600"
-            />
-          </div>
-          <div>
-            <label className="text-gray-400 text-xs mb-1 block">% Empate</label>
-            <input
-              type="number"
-              step="0.1"
-              value={form.probEmpate}
-              onChange={(e) =>
-                setForm({ ...form, probEmpate: parseFloat(e.target.value) })
-              }
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-600"
-            />
-          </div>
-          <div>
-            <label className="text-gray-400 text-xs mb-1 block">
-              % {form.fora} vence
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={form.probFora}
-              onChange={(e) =>
-                setForm({ ...form, probFora: parseFloat(e.target.value) })
-              }
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-600"
-            />
-          </div>
+          {[
+            {
+              label: `Gols esp. ${form.casa}`,
+              key: "golsEsperadosCasa",
+              step: "0.1",
+            },
+            {
+              label: `Gols esp. ${form.fora}`,
+              key: "golsEsperadosFora",
+              step: "0.1",
+            },
+            { label: `% ${form.casa} vence`, key: "probCasa", step: "0.1" },
+            { label: "% Empate", key: "probEmpate", step: "0.1" },
+            { label: `% ${form.fora} vence`, key: "probFora", step: "0.1" },
+            { label: "% Ambas marcam", key: "ambaMarcam", step: "0.1" },
+            { label: "% Mais de 2.5 gols", key: "mais25", step: "0.1" },
+          ].map(({ label, key, step }) => (
+            <div key={key}>
+              <label className="text-gray-400 text-xs mb-1 block">
+                {label}
+              </label>
+              <input
+                type="number"
+                step={step}
+                value={(form as any)[key]}
+                onChange={(e) =>
+                  setForm({ ...form, [key]: parseFloat(e.target.value) })
+                }
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-600"
+              />
+            </div>
+          ))}
           <div>
             <label className="text-gray-400 text-xs mb-1 block">Favorito</label>
             <select
@@ -164,39 +131,12 @@ function EditModal({
           </div>
           <div>
             <label className="text-gray-400 text-xs mb-1 block">
-              % Ambas marcam
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={form.ambaMarcam}
-              onChange={(e) =>
-                setForm({ ...form, ambaMarcam: parseFloat(e.target.value) })
-              }
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-600"
-            />
-          </div>
-          <div>
-            <label className="text-gray-400 text-xs mb-1 block">
-              % Mais de 2.5 gols
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={form.mais25}
-              onChange={(e) =>
-                setForm({ ...form, mais25: parseFloat(e.target.value) })
-              }
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-600"
-            />
-          </div>
-          <div>
-            <label className="text-gray-400 text-xs mb-1 block">
               Placar mais provável
             </label>
             <input
               type="text"
               value={form.maisProvavel.placar}
+              placeholder="2x0"
               onChange={(e) =>
                 setForm({
                   ...form,
@@ -207,7 +147,6 @@ function EditModal({
                 })
               }
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-600"
-              placeholder="2x0"
             />
           </div>
           <div>
@@ -241,17 +180,17 @@ function EditModal({
                 <input
                   type="text"
                   value={o.placar}
+                  placeholder="1x0"
                   onChange={(e) => updateOtro(i, "placar", e.target.value)}
                   className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-green-600"
-                  placeholder="1x0"
                 />
                 <input
                   type="number"
                   step="0.1"
                   value={o.prob}
+                  placeholder="%"
                   onChange={(e) => updateOtro(i, "prob", e.target.value)}
                   className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-green-600"
-                  placeholder="%"
                 />
               </div>
             ))}
@@ -276,7 +215,8 @@ function EditModal({
   );
 }
 
-function JogoCard({
+// Card DESTAQUE (grande)
+function JogoCardDestaque({
   jogo,
   isAdmin,
   onEdit,
@@ -287,7 +227,7 @@ function JogoCard({
 }) {
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-      <div className="bg-gray-800/50 px-4 py-4 relative">
+      <div className="bg-gray-800/50 px-6 py-5 relative">
         {isAdmin && (
           <button
             onClick={onEdit}
@@ -296,138 +236,124 @@ function JogoCard({
             ✏️ Editar
           </button>
         )}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex flex-col items-center gap-1 flex-1">
-            <TeamLogo logo={jogo.logoHome} nome={jogo.casa} />
-            <p className="text-white font-black text-sm uppercase text-center">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col items-center gap-2 flex-1">
+            <TeamLogo logo={jogo.logoHome} nome={jogo.casa} size="lg" />
+            <p className="text-white font-black text-base uppercase text-center">
               {jogo.casa}
             </p>
-            <p className="text-gray-500 text-[10px]">
+            <p className="text-gray-500 text-xs">
               {jogo.golsEsperadosCasa} gols esp.
             </p>
           </div>
-          <div className="flex flex-col items-center gap-1">
-            <span className="bg-gray-900 text-white font-bold text-sm px-3 py-1 rounded-full border border-gray-700">
+          <div className="flex flex-col items-center gap-2">
+            <span className="bg-gray-900 text-white font-bold text-base px-4 py-1.5 rounded-full border border-gray-700">
               {jogo.horario}
             </span>
+            <span className="text-gray-500 text-xs">vs</span>
           </div>
-          <div className="flex flex-col items-center gap-1 flex-1">
-            <TeamLogo logo={jogo.logoAway} nome={jogo.fora} />
-            <p className="text-white font-black text-sm uppercase text-center">
+          <div className="flex flex-col items-center gap-2 flex-1">
+            <TeamLogo logo={jogo.logoAway} nome={jogo.fora} size="lg" />
+            <p className="text-white font-black text-base uppercase text-center">
               {jogo.fora}
             </p>
-            <p className="text-gray-500 text-[10px]">
+            <p className="text-gray-500 text-xs">
               {jogo.golsEsperadosFora} gols esp.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="p-5 space-y-4">
         <div>
           <p className="text-[10px] text-gray-500 uppercase tracking-widest text-center mb-3">
             Chance de cada resultado
           </p>
-          <div className="grid grid-cols-3 gap-2">
-            <div
-              className={`rounded-xl p-3 border-2 text-center ${jogo.favorito === "casa" ? "border-green-500 bg-green-950/30" : "border-gray-700 bg-gray-800/40"}`}
-            >
-              {jogo.favorito === "casa" && (
-                <span className="block text-[9px] bg-green-500 text-white font-bold px-2 py-0.5 rounded-full mb-1 uppercase">
-                  Favorita
-                </span>
-              )}
-              <p
-                className={`text-[11px] font-bold uppercase mb-1 ${jogo.favorito === "casa" ? "text-green-400" : "text-gray-300"}`}
-              >
-                {jogo.casa}
-              </p>
-              <p
-                className={`text-2xl font-black ${jogo.favorito === "casa" ? "text-green-400" : "text-white"}`}
-              >
-                {jogo.probCasa}%
-              </p>
-              <p className="text-[10px] text-gray-500 mt-1">não sofre gol</p>
-              <p className="text-[10px] text-gray-400">{jogo.naoSofreCasa}%</p>
-            </div>
-            <div
-              className={`rounded-xl p-3 border-2 text-center ${jogo.favorito === "empate" ? "border-yellow-500 bg-yellow-950/30" : "border-gray-700 bg-gray-800/40"}`}
-            >
-              {jogo.favorito === "empate" && (
-                <span className="block text-[9px] bg-yellow-500 text-black font-bold px-2 py-0.5 rounded-full mb-1 uppercase">
-                  Favorito
-                </span>
-              )}
-              <p className="text-[11px] font-bold uppercase mb-1 text-yellow-400">
-                Empate
-              </p>
-              <p className="text-2xl font-black text-yellow-400">
-                {jogo.probEmpate}%
-              </p>
-              <p className="text-[10px] text-gray-500 mt-1">
-                com gols {jogo.empateComGols}% · sem {jogo.empateSemGols}%
-              </p>
-            </div>
-            <div
-              className={`rounded-xl p-3 border-2 text-center ${jogo.favorito === "fora" ? "border-green-500 bg-green-950/30" : "border-gray-700 bg-gray-800/40"}`}
-            >
-              {jogo.favorito === "fora" && (
-                <span className="block text-[9px] bg-green-500 text-white font-bold px-2 py-0.5 rounded-full mb-1 uppercase">
-                  Favorita
-                </span>
-              )}
-              <p
-                className={`text-[11px] font-bold uppercase mb-1 ${jogo.favorito === "fora" ? "text-green-400" : "text-gray-300"}`}
-              >
-                {jogo.fora}
-              </p>
-              <p
-                className={`text-2xl font-black ${jogo.favorito === "fora" ? "text-green-400" : "text-white"}`}
-              >
-                {jogo.probFora}%
-              </p>
-              <p className="text-[10px] text-gray-500 mt-1">não sofre gol</p>
-              <p className="text-[10px] text-gray-400">{jogo.naoSofreFora}%</p>
-            </div>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              {
+                key: "casa",
+                label: jogo.casa,
+                prob: jogo.probCasa,
+                sub: `não sofre gol`,
+                subVal: `${jogo.naoSofreCasa}%`,
+              },
+              {
+                key: "empate",
+                label: "Empate",
+                prob: jogo.probEmpate,
+                sub: `c/ gols ${jogo.empateComGols}% · s/ ${jogo.empateSemGols}%`,
+                subVal: "",
+              },
+              {
+                key: "fora",
+                label: jogo.fora,
+                prob: jogo.probFora,
+                sub: `não sofre gol`,
+                subVal: `${jogo.naoSofreFora}%`,
+              },
+            ].map(({ key, label, prob, sub, subVal }) => {
+              const isFav = jogo.favorito === key;
+              const cor = key === "empate" ? "yellow" : "green";
+              return (
+                <div
+                  key={key}
+                  className={`rounded-xl p-4 border-2 text-center ${isFav ? `border-${cor}-500 bg-${cor}-950/30` : "border-gray-700 bg-gray-800/40"}`}
+                >
+                  {isFav && (
+                    <span
+                      className={`block text-[9px] bg-${cor}-500 ${cor === "yellow" ? "text-black" : "text-white"} font-bold px-2 py-0.5 rounded-full mb-1 uppercase`}
+                    >
+                      Favorita
+                    </span>
+                  )}
+                  <p
+                    className={`text-xs font-bold uppercase mb-1 ${isFav ? `text-${cor}-400` : "text-gray-300"}`}
+                  >
+                    {label}
+                  </p>
+                  <p
+                    className={`text-3xl font-black ${isFav ? `text-${cor}-400` : "text-white"}`}
+                  >
+                    {prob}%
+                  </p>
+                  <p className="text-[10px] text-gray-500 mt-1">{sub}</p>
+                  {subVal && (
+                    <p className="text-[10px] text-gray-400">{subVal}</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        <div>
-          <p className="text-[10px] text-gray-500 uppercase tracking-widest text-center mb-3">
-            Gols e placar do jogo
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="bg-gray-800/40 rounded-xl p-3 text-center">
-              <p className="text-[10px] text-gray-500 uppercase mb-1">
-                Placar mais provável
-              </p>
-              <p className="text-white font-black text-lg">
-                {jogo.maisProvavel.placar}
-              </p>
-              <p className="text-gray-500 text-[10px]">
-                {jogo.maisProvavel.prob}%
-              </p>
-            </div>
-            <div className="bg-gray-800/40 rounded-xl p-3 text-center">
-              <p className="text-[10px] text-gray-500 uppercase mb-1">
-                Mais de 2.5 gols
-              </p>
-              <p className="text-white font-black text-lg">{jogo.mais25}%</p>
-            </div>
-            <div className="bg-gray-800/40 rounded-xl p-3 text-center">
-              <p className="text-[10px] text-gray-500 uppercase mb-1">
-                Ambas marcam
-              </p>
-              <p className="text-white font-black text-lg">
-                {jogo.ambaMarcam}%
-              </p>
-            </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-gray-800/40 rounded-xl p-3 text-center">
+            <p className="text-[10px] text-gray-500 uppercase mb-1">
+              Placar mais provável
+            </p>
+            <p className="text-white font-black text-xl">
+              {jogo.maisProvavel.placar}
+            </p>
+            <p className="text-gray-500 text-xs">{jogo.maisProvavel.prob}%</p>
+          </div>
+          <div className="bg-gray-800/40 rounded-xl p-3 text-center">
+            <p className="text-[10px] text-gray-500 uppercase mb-1">
+              Mais de 2.5 gols
+            </p>
+            <p className="text-white font-black text-xl">{jogo.mais25}%</p>
+          </div>
+          <div className="bg-gray-800/40 rounded-xl p-3 text-center">
+            <p className="text-[10px] text-gray-500 uppercase mb-1">
+              Ambas marcam
+            </p>
+            <p className="text-white font-black text-xl">{jogo.ambaMarcam}%</p>
           </div>
         </div>
 
         {jogo.outrosProvaveis.length > 0 && (
           <div className="border border-gray-700 rounded-xl p-3">
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest text-center mb-3">
+            <p className="text-[10px] text-gray-500 uppercase tracking-widest text-center mb-2">
               Outros resultados prováveis
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
@@ -440,6 +366,125 @@ function JogoCard({
                 </span>
               ))}
             </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Card MENOR (compacto)
+function JogoCardMenor({
+  jogo,
+  isAdmin,
+  onEdit,
+}: {
+  jogo: JogoAnalise;
+  isAdmin: boolean;
+  onEdit: () => void;
+}) {
+  return (
+    <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+      <div className="bg-gray-800/50 px-4 py-3 relative">
+        {isAdmin && (
+          <button
+            onClick={onEdit}
+            className="absolute top-2 right-2 text-gray-500 hover:text-white text-xs bg-gray-700 px-2 py-0.5 rounded-md transition-colors"
+          >
+            ✏️ Editar
+          </button>
+        )}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-col items-center gap-1 flex-1">
+            <TeamLogo logo={jogo.logoHome} nome={jogo.casa} size="sm" />
+            <p className="text-white font-black text-xs uppercase text-center leading-tight">
+              {jogo.casa}
+            </p>
+            <p className="text-gray-500 text-[9px]">
+              {jogo.golsEsperadosCasa} gols esp.
+            </p>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="bg-gray-900 text-white font-bold text-xs px-2 py-1 rounded-full border border-gray-700">
+              {jogo.horario}
+            </span>
+          </div>
+          <div className="flex flex-col items-center gap-1 flex-1">
+            <TeamLogo logo={jogo.logoAway} nome={jogo.fora} size="sm" />
+            <p className="text-white font-black text-xs uppercase text-center leading-tight">
+              {jogo.fora}
+            </p>
+            <p className="text-gray-500 text-[9px]">
+              {jogo.golsEsperadosFora} gols esp.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-3 space-y-3">
+        <div className="grid grid-cols-3 gap-1.5">
+          {[
+            { key: "casa", label: jogo.casa, prob: jogo.probCasa },
+            { key: "empate", label: "Empate", prob: jogo.probEmpate },
+            { key: "fora", label: jogo.fora, prob: jogo.probFora },
+          ].map(({ key, label, prob }) => {
+            const isFav = jogo.favorito === key;
+            const cor = key === "empate" ? "text-yellow-400" : "text-green-400";
+            return (
+              <div
+                key={key}
+                className={`rounded-lg p-2 border text-center ${isFav ? "border-green-600 bg-green-950/20" : "border-gray-700 bg-gray-800/40"}`}
+              >
+                {isFav && (
+                  <span className="block text-[8px] text-green-400 font-bold mb-0.5 uppercase">
+                    Fav.
+                  </span>
+                )}
+                <p className="text-[9px] text-gray-400 uppercase truncate mb-0.5">
+                  {label}
+                </p>
+                <p
+                  className={`text-base font-black ${isFav ? cor : "text-white"}`}
+                >
+                  {prob}%
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="grid grid-cols-3 gap-1.5">
+          <div className="bg-gray-800/40 rounded-lg p-2 text-center">
+            <p className="text-[8px] text-gray-500 uppercase mb-0.5">Placar</p>
+            <p className="text-white font-black text-sm">
+              {jogo.maisProvavel.placar}
+            </p>
+            <p className="text-gray-500 text-[9px]">
+              {jogo.maisProvavel.prob}%
+            </p>
+          </div>
+          <div className="bg-gray-800/40 rounded-lg p-2 text-center">
+            <p className="text-[8px] text-gray-500 uppercase mb-0.5">
+              +2.5 gols
+            </p>
+            <p className="text-white font-black text-sm">{jogo.mais25}%</p>
+          </div>
+          <div className="bg-gray-800/40 rounded-lg p-2 text-center">
+            <p className="text-[8px] text-gray-500 uppercase mb-0.5">Ambas</p>
+            <p className="text-white font-black text-sm">{jogo.ambaMarcam}%</p>
+          </div>
+        </div>
+
+        {jogo.outrosProvaveis.length > 0 && (
+          <div className="flex flex-wrap gap-1 justify-center">
+            {jogo.outrosProvaveis.slice(0, 4).map((p, i) => (
+              <span
+                key={i}
+                className="bg-gray-800 text-white text-[10px] px-2 py-1 rounded-md font-medium"
+              >
+                {p.placar} <span className="text-gray-400">{p.prob}%</span>
+              </span>
+            ))}
           </div>
         )}
       </div>
@@ -477,6 +522,9 @@ export default function AnalisesJogos({ userEmail }: { userEmail: string }) {
       body: JSON.stringify({ jogos: novos }),
     });
   }
+
+  const destaque = jogos[0];
+  const menores = jogos.slice(1);
 
   return (
     <div className="space-y-4">
@@ -516,15 +564,29 @@ export default function AnalisesJogos({ userEmail }: { userEmail: string }) {
           Nenhum jogo hoje para analisar.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {jogos.map((jogo) => (
-            <JogoCard
-              key={jogo.id}
-              jogo={jogo}
+        <div className="space-y-4">
+          {/* Card destaque */}
+          {destaque && (
+            <JogoCardDestaque
+              jogo={destaque}
               isAdmin={isAdmin}
-              onEdit={() => setEditando(jogo)}
+              onEdit={() => setEditando(destaque)}
             />
-          ))}
+          )}
+
+          {/* Cards menores — 3 em linha */}
+          {menores.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {menores.map((jogo) => (
+                <JogoCardMenor
+                  key={jogo.id}
+                  jogo={jogo}
+                  isAdmin={isAdmin}
+                  onEdit={() => setEditando(jogo)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
