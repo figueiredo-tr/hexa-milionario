@@ -14,6 +14,20 @@ async function fetchESPN(url: string) {
   return res.json();
 }
 
+// CORREÇÃO: data sempre no fuso de Brasília
+function hojeNoBrasil(): string {
+  return new Date()
+    .toLocaleDateString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+    .split("/")
+    .reverse()
+    .join("-");
+}
+
 const traducaoTimes: Record<string, string> = {
   Brazil: "Brasil",
   Argentina: "Argentina",
@@ -103,16 +117,15 @@ function traduzirTime(nome: string): string {
 function calcularForcaForma(forma: string): number {
   if (!forma || forma.length === 0) return 1.0;
   const resultados = forma.slice(-5).split("");
-  let pontos = 0;
-  let pesoTotal = 0;
+  let pontos = 0,
+    pesoTotal = 0;
   resultados.forEach((r, i) => {
     const peso = i + 1;
     pesoTotal += peso;
     if (r === "W") pontos += 3 * peso;
     else if (r === "D") pontos += 1 * peso;
   });
-  const maxPontos = 3 * pesoTotal;
-  return 0.65 + (pontos / maxPontos) * 0.8;
+  return 0.65 + (pontos / (3 * pesoTotal)) * 0.8;
 }
 
 function parseRecord(record: string) {
@@ -121,8 +134,7 @@ function parseRecord(record: string) {
     e = parts[1] || 0,
     d = parts[2] || 0;
   const jogos = v + e + d;
-  const pontos = v * 3 + e;
-  const aproveitamento = jogos > 0 ? pontos / (jogos * 3) : 0.33;
+  const aproveitamento = jogos > 0 ? (v * 3 + e) / (jogos * 3) : 0.33;
   return { v, e, d, jogos, aproveitamento };
 }
 
@@ -142,8 +154,8 @@ function calcularProbabilidades(
     probEmpate = 0,
     probFora = 0;
   let ambaMarcam = 0,
-    mais25 = 0;
-  let naoSofreCasa = 0,
+    mais25 = 0,
+    naoSofreCasa = 0,
     naoSofreFora = 0;
   let empateComGols = 0,
     empateSemGols = 0;
@@ -175,10 +187,6 @@ function calcularProbabilidades(
 
   placares.sort((a, b) => b.prob - a.prob);
   const top6 = placares.slice(0, 6);
-  const maisProvavel = top6[0];
-  const outrosProvaveis = top6.slice(1);
-  const favorito =
-    probCasa > probFora ? "casa" : probFora > probCasa ? "fora" : "empate";
 
   return {
     probCasa: parseFloat((probCasa * 100).toFixed(1)),
@@ -191,14 +199,17 @@ function calcularProbabilidades(
     empateComGols: parseFloat((empateComGols * 100).toFixed(1)),
     empateSemGols: parseFloat((empateSemGols * 100).toFixed(1)),
     maisProvavel: {
-      placar: maisProvavel.placar,
-      prob: parseFloat((maisProvavel.prob * 100).toFixed(1)),
+      placar: top6[0].placar,
+      prob: parseFloat((top6[0].prob * 100).toFixed(1)),
     },
-    outrosProvaveis: outrosProvaveis.map((p) => ({
-      placar: p.placar,
-      prob: parseFloat((p.prob * 100).toFixed(1)),
-    })),
-    favorito,
+    outrosProvaveis: top6
+      .slice(1)
+      .map((p) => ({
+        placar: p.placar,
+        prob: parseFloat((p.prob * 100).toFixed(1)),
+      })),
+    favorito:
+      probCasa > probFora ? "casa" : probFora > probCasa ? "fora" : "empate",
   };
 }
 
@@ -206,7 +217,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const forcar = searchParams.get("forcar") === "1";
-    const hoje = new Date().toISOString().slice(0, 10);
+    const hoje = hojeNoBrasil(); // ← CORRIGIDO
     const supabase = await createClient();
 
     if (!forcar) {
@@ -228,31 +239,16 @@ export async function GET(request: Request) {
     if (eventos.length === 0)
       return NextResponse.json({ jogos: [], fonte: "sem_jogos" });
 
-    // Filtra apenas jogos do dia atual no horário de Brasília
-    const hojeFormatado = new Date().toLocaleDateString("pt-BR", {
-      timeZone: "America/Sao_Paulo",
-    });
-    const eventosDoDia = eventos.filter((evento: any) => {
-      const dataJogo = new Date(evento.date).toLocaleDateString("pt-BR", {
-        timeZone: "America/Sao_Paulo",
-      });
-      return dataJogo === hojeFormatado;
-    });
-
-    if (eventosDoDia.length === 0)
-      return NextResponse.json({ jogos: [], fonte: "sem_jogos" });
-
     const mediaGolsCopa = 1.35;
 
-    const jogosAnalisados = eventosDoDia.map((evento: any) => {
+    // CORREÇÃO: usa eventos direto, sem filtro extra por data (dataParam já é Brasília)
+    const jogosAnalisados = eventos.map((evento: any) => {
       const comp = evento.competitions?.[0];
       const home = comp?.competitors?.find((c: any) => c.homeAway === "home");
       const away = comp?.competitors?.find((c: any) => c.homeAway === "away");
 
-      const homeNameOriginal = home?.team?.displayName || "Time A";
-      const awayNameOriginal = away?.team?.displayName || "Time B";
-      const homeName = traduzirTime(homeNameOriginal);
-      const awayName = traduzirTime(awayNameOriginal);
+      const homeName = traduzirTime(home?.team?.displayName || "Time A");
+      const awayName = traduzirTime(away?.team?.displayName || "Time B");
       const logoHome = home?.team?.logos?.[0]?.href || home?.team?.logo || "";
       const logoAway = away?.team?.logos?.[0]?.href || away?.team?.logo || "";
 
@@ -262,11 +258,8 @@ export async function GET(request: Request) {
         timeZone: "America/Sao_Paulo",
       });
 
-      const formaHome = home?.form || "";
-      const formaAway = away?.form || "";
-      const forcaHome = calcularForcaForma(formaHome);
-      const forcaAway = calcularForcaForma(formaAway);
-
+      const forcaHome = calcularForcaForma(home?.form || "");
+      const forcaAway = calcularForcaForma(away?.form || "");
       const recordHome = parseRecord(home?.records?.[0]?.summary || "");
       const recordAway = parseRecord(away?.records?.[0]?.summary || "");
 
@@ -294,8 +287,8 @@ export async function GET(request: Request) {
           forcaHome *
           (mediaGolsCopa / Math.max(mediaDefesaFora * forcaAway, 0.4));
       } else {
-        const baseHome = mediaGolsCopa * (0.5 + recordHome.aproveitamento);
-        golsEsperadosCasa = baseHome * forcaHome;
+        golsEsperadosCasa =
+          mediaGolsCopa * (0.5 + recordHome.aproveitamento) * forcaHome;
       }
 
       if (recordAway.jogos > 0 && awayGolsMarcados > 0) {
@@ -309,9 +302,8 @@ export async function GET(request: Request) {
           forcaAway *
           (mediaGolsCopa / Math.max(mediaDefesaCasa * forcaHome, 0.4));
       } else {
-        const baseFora =
-          mediaGolsCopa * (0.5 + recordAway.aproveitamento) * 0.88;
-        golsEsperadosFora = baseFora * forcaAway;
+        golsEsperadosFora =
+          mediaGolsCopa * (0.5 + recordAway.aproveitamento) * 0.88 * forcaAway;
       }
 
       golsEsperadosCasa = Math.max(0.25, Math.min(4.5, golsEsperadosCasa));
@@ -331,8 +323,8 @@ export async function GET(request: Request) {
         horario,
         golsEsperadosCasa: parseFloat(golsEsperadosCasa.toFixed(1)),
         golsEsperadosFora: parseFloat(golsEsperadosFora.toFixed(1)),
-        formaHome,
-        formaAway,
+        formaHome: home?.form || "",
+        formaAway: away?.form || "",
         ...probs,
       };
     });
@@ -367,7 +359,7 @@ export async function GET(request: Request) {
 export async function PUT(request: Request) {
   try {
     const supabase = await createClient();
-    const hoje = new Date().toISOString().slice(0, 10);
+    const hoje = hojeNoBrasil(); // ← CORRIGIDO
     const body = await request.json();
 
     const { data: existente } = await supabase

@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
-// ─── Mercados ────────────────────────────────────────────────────────────────
 const MERCADOS = [
   { group: "Resultado", value: "vit_casa", label: "Vitória do mandante" },
   { group: "Resultado", value: "empate", label: "Empate" },
@@ -129,8 +128,21 @@ function labelMercado(value: string) {
 }
 const groups = [...new Set(MERCADOS.map((m) => m.group))];
 
+// ── Utilitário de fuso Brasília ──────────────────────────────────────────────
+function hojeNoBrasilISO(): string {
+  return new Date()
+    .toLocaleDateString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+    .split("/")
+    .reverse()
+    .join("-");
+}
+
 // ─── Seletor de data ─────────────────────────────────────────────────────────
-// CORREÇÃO: começa em i=0 (hoje) em vez de i-1 (ontem)
 function SeletorData({
   dataSelecionada,
   onChange,
@@ -138,10 +150,12 @@ function SeletorData({
   dataSelecionada: string;
   onChange: (d: string) => void;
 }) {
-  const hoje = new Date();
+  const hojeISO = hojeNoBrasilISO();
+  const hoje = new Date(hojeISO + "T12:00:00");
+
   const dias = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(hoje);
-    d.setDate(hoje.getDate() + i); // ← era "i - 1", corrigido para "i"
+    const d = new Date(hojeISO + "T12:00:00");
+    d.setDate(hoje.getDate() + i);
     return d;
   });
 
@@ -149,7 +163,7 @@ function SeletorData({
     <div className="flex gap-2 overflow-x-auto pb-1">
       {dias.map((d) => {
         const iso = d.toISOString().slice(0, 10);
-        const isHoje = iso === hoje.toISOString().slice(0, 10);
+        const isHoje = iso === hojeISO;
         const isSel = iso === dataSelecionada;
         return (
           <button
@@ -180,7 +194,6 @@ function SeletorData({
 }
 
 // ─── Card visual do jogo ─────────────────────────────────────────────────────
-// CORREÇÃO: encerrado não bloqueia mais o clique
 function JogoCard({
   jogo,
   selecionado,
@@ -266,7 +279,6 @@ function JogoCard({
   );
 }
 
-// ─── Select mercado ───────────────────────────────────────────────────────────
 const SelectMercado = ({
   value,
   onChange,
@@ -292,7 +304,6 @@ const SelectMercado = ({
   </select>
 );
 
-// ─── Página ───────────────────────────────────────────────────────────────────
 export default function ApostasPage() {
   const [apostas, setApostas] = useState<Aposta[]>([]);
   const [filtro, setFiltro] = useState("todos");
@@ -300,9 +311,8 @@ export default function ApostasPage() {
   const [loading, setLoading] = useState(false);
   const [jogosEspn, setJogosEspn] = useState<JogoEspn[]>([]);
   const [loadingJogos, setLoadingJogos] = useState(false);
-  const [dataSelecionada, setDataSelecionada] = useState(
-    new Date().toISOString().slice(0, 10),
-  );
+  // CORREÇÃO: usa fuso de Brasília no estado inicial
+  const [dataSelecionada, setDataSelecionada] = useState(hojeNoBrasilISO());
   const supabase = createClient();
 
   const [jogoSelecionado, setJogoSelecionado] = useState<JogoEspn | null>(null);
@@ -506,14 +516,11 @@ export default function ApostasPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `apostas_hexa_${new Date().toISOString().split("T")[0]}.csv`;
+    link.download = `apostas_hexa_${hojeNoBrasilISO()}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   }
 
-  function addJogo() {
-    setJogosMultipla((p) => [...p, { jogo: "", odd: 1.5, mercados: [""] }]);
-  }
   function removeJogo(ji: number) {
     setJogosMultipla((p) => p.filter((_, i) => i !== ji));
   }
@@ -559,7 +566,6 @@ export default function ApostasPage() {
 
       <Card className="bg-gray-900 border-gray-800">
         <CardHeader className="pb-3">
-          {/* CORREÇÃO: título centralizado + botões abaixo */}
           <div className="flex flex-col items-center gap-3">
             <CardTitle className="text-white text-lg">Nova Aposta</CardTitle>
             <div className="flex gap-2">
@@ -647,7 +653,6 @@ export default function ApostasPage() {
             )}
           </div>
 
-          {/* ── SIMPLES ── */}
           {aba === "simples" && jogoSelecionado && (
             <form
               onSubmit={handleSimples}
@@ -739,7 +744,6 @@ export default function ApostasPage() {
             </p>
           )}
 
-          {/* ── MÚLTIPLA ── */}
           {aba === "multipla" && (
             <form
               onSubmit={handleMultipla}
@@ -914,7 +918,6 @@ export default function ApostasPage() {
         </CardContent>
       </Card>
 
-      {/* Filtros */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
           {[
@@ -947,7 +950,6 @@ export default function ApostasPage() {
         </Button>
       </div>
 
-      {/* Lista de apostas */}
       <div className="space-y-3">
         {apostasFiltradas.map((aposta) => (
           <Card key={aposta.id} className="bg-gray-900 border-gray-800">
