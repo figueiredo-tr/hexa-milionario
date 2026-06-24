@@ -111,18 +111,8 @@ type Aposta = {
   selecoes?: SelecaoMultipla[];
 };
 
-type SelecaoMultipla = {
-  jogo: string;
-  mercado: string;
-  odd: number;
-};
-
-type JogoMultipla = {
-  jogo: string;
-  odd: number;
-  mercados: string[];
-};
-
+type SelecaoMultipla = { jogo: string; mercado: string; odd: number };
+type JogoMultipla = { jogo: string; odd: number; mercados: string[] };
 type JogoEspn = {
   id: number;
   casa: string;
@@ -140,6 +130,7 @@ function labelMercado(value: string) {
 const groups = [...new Set(MERCADOS.map((m) => m.group))];
 
 // ─── Seletor de data ─────────────────────────────────────────────────────────
+// CORREÇÃO: começa em i=0 (hoje) em vez de i-1 (ontem)
 function SeletorData({
   dataSelecionada,
   onChange,
@@ -150,7 +141,7 @@ function SeletorData({
   const hoje = new Date();
   const dias = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(hoje);
-    d.setDate(hoje.getDate() + i - 1);
+    d.setDate(hoje.getDate() + i); // ← era "i - 1", corrigido para "i"
     return d;
   });
 
@@ -189,6 +180,7 @@ function SeletorData({
 }
 
 // ─── Card visual do jogo ─────────────────────────────────────────────────────
+// CORREÇÃO: encerrado não bloqueia mais o clique
 function JogoCard({
   jogo,
   selecionado,
@@ -202,12 +194,11 @@ function JogoCard({
   return (
     <button
       onClick={onSelect}
-      disabled={encerrado}
       className={`w-full text-left rounded-xl border-2 transition-all p-3 ${
-        encerrado
-          ? "opacity-40 cursor-not-allowed border-gray-800 bg-gray-900"
-          : selecionado
-            ? "border-green-500 bg-green-950/30"
+        selecionado
+          ? "border-green-500 bg-green-950/30"
+          : encerrado
+            ? "border-gray-700 bg-gray-800/30 hover:border-yellow-700"
             : "border-gray-700 bg-gray-800/50 hover:border-green-700"
       }`}
     >
@@ -241,7 +232,9 @@ function JogoCard({
           </span>
           <span className="text-gray-500 text-[10px]">{jogo.grupo}</span>
           {encerrado && (
-            <span className="text-[9px] text-red-400 font-bold">ENCERRADO</span>
+            <span className="text-[9px] text-yellow-500 font-bold">
+              ENCERRADO
+            </span>
           )}
         </div>
         <div className="flex flex-col items-center gap-1 flex-1">
@@ -312,13 +305,11 @@ export default function ApostasPage() {
   );
   const supabase = createClient();
 
-  // Form simples
   const [jogoSelecionado, setJogoSelecionado] = useState<JogoEspn | null>(null);
   const [mercadoSimples, setMercadoSimples] = useState("");
   const [oddSimples, setOddSimples] = useState("");
   const [stakeSimples, setStakeSimples] = useState("");
 
-  // Form múltipla
   const [jogosMultipla, setJogosMultipla] = useState<JogoMultipla[]>([
     { jogo: "", odd: 1.5, mercados: [""] },
   ]);
@@ -404,11 +395,10 @@ export default function ApostasPage() {
     } = await supabase.auth.getUser();
     const odd = parseFloat(oddSimples);
     const stake = parseFloat(stakeSimples);
-    const partida = `${jogoSelecionado.casa} × ${jogoSelecionado.visitante}`;
     await supabase.from("apostas").insert({
       user_id: user!.id,
       tipo: "simples",
-      partida,
+      partida: `${jogoSelecionado.casa} × ${jogoSelecionado.visitante}`,
       descricao: labelMercado(mercadoSimples),
       odd,
       stake,
@@ -437,18 +427,16 @@ export default function ApostasPage() {
         .filter(Boolean)
         .map((m) => ({ jogo: j.jogo, mercado: m, odd: j.odd })),
     );
-    const partida = `Múltipla (${jogosMultipla.length} jogo${jogosMultipla.length > 1 ? "s" : ""})`;
-    const descricao = jogosMultipla
-      .map(
-        (j) =>
-          `${j.jogo} [${j.mercados.filter(Boolean).map(labelMercado).join(" + ")}] @${j.odd}`,
-      )
-      .join(" | ");
     await supabase.from("apostas").insert({
       user_id: user!.id,
       tipo: "multipla",
-      partida,
-      descricao,
+      partida: `Múltipla (${jogosMultipla.length} jogo${jogosMultipla.length > 1 ? "s" : ""})`,
+      descricao: jogosMultipla
+        .map(
+          (j) =>
+            `${j.jogo} [${j.mercados.filter(Boolean).map(labelMercado).join(" + ")}] @${j.odd}`,
+        )
+        .join(" | "),
       odd: oddFinal,
       stake,
       retorno: stake * oddFinal,
@@ -472,8 +460,10 @@ export default function ApostasPage() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const retorno = resultado === "ganhou" ? stake * odd : 0;
-    await supabase.from("apostas").update({ resultado, retorno }).eq("id", id);
+    await supabase
+      .from("apostas")
+      .update({ resultado, retorno: resultado === "ganhou" ? stake * odd : 0 })
+      .eq("id", id);
     await atualizarBanca(user!.id);
     await loadApostas();
   }
@@ -562,26 +552,26 @@ export default function ApostasPage() {
   const apostasFiltradas = apostas.filter(
     (a) => filtro === "todos" || a.resultado === filtro,
   );
-  const jogosDisponiveis = jogosEspn.filter((j) => j.status !== "encerrado");
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-white">🎯 Minhas Apostas</h1>
 
       <Card className="bg-gray-900 border-gray-800">
-        <CardHeader>
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <CardTitle className="text-white">Nova Aposta</CardTitle>
+        <CardHeader className="pb-3">
+          {/* CORREÇÃO: título centralizado + botões abaixo */}
+          <div className="flex flex-col items-center gap-3">
+            <CardTitle className="text-white text-lg">Nova Aposta</CardTitle>
             <div className="flex gap-2">
               <button
                 onClick={() => setAba("simples")}
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${aba === "simples" ? "bg-green-600 text-white" : "bg-gray-800 text-gray-400 hover:text-white"}`}
+                className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${aba === "simples" ? "bg-green-600 text-white shadow-lg shadow-green-900/40" : "bg-gray-800 text-gray-400 hover:text-white"}`}
               >
                 🎯 Simples
               </button>
               <button
                 onClick={() => setAba("multipla")}
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${aba === "multipla" ? "bg-yellow-600 text-white" : "bg-gray-800 text-gray-400 hover:text-white"}`}
+                className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${aba === "multipla" ? "bg-yellow-600 text-white shadow-lg shadow-yellow-900/40" : "bg-gray-800 text-gray-400 hover:text-white"}`}
               >
                 🎰 Múltipla
               </button>
@@ -590,7 +580,6 @@ export default function ApostasPage() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Seletor de data */}
           <div>
             <p className="text-gray-500 text-xs mb-2 uppercase tracking-widest">
               Selecionar data
@@ -601,7 +590,6 @@ export default function ApostasPage() {
             />
           </div>
 
-          {/* Jogos do dia */}
           <div>
             <p className="text-gray-500 text-xs mb-2 uppercase tracking-widest">
               Jogos disponíveis —{" "}
@@ -675,6 +663,11 @@ export default function ApostasPage() {
                 <p className="text-gray-500 text-xs">
                   {jogoSelecionado.horario} · {jogoSelecionado.grupo}
                 </p>
+                {jogoSelecionado.status === "encerrado" && (
+                  <p className="text-yellow-400 text-xs mt-1 font-semibold">
+                    ⚠️ Jogo encerrado — lançamento retroativo
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -755,7 +748,6 @@ export default function ApostasPage() {
               <p className="text-gray-400 text-xs">
                 ☝️ Clique nos jogos acima para adicioná-los à múltipla
               </p>
-
               {jogosMultipla.filter((j) => j.jogo).length === 0 ? (
                 <p className="text-gray-500 text-sm text-center py-4 border border-dashed border-gray-700 rounded-xl">
                   Nenhum jogo selecionado ainda
@@ -837,7 +829,6 @@ export default function ApostasPage() {
                     ))}
                 </div>
               )}
-
               <div className="bg-gray-800 rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400 text-sm">
@@ -905,7 +896,6 @@ export default function ApostasPage() {
                   </div>
                 </div>
               </div>
-
               <Button
                 type="submit"
                 disabled={
