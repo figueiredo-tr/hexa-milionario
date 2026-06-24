@@ -128,7 +128,6 @@ function labelMercado(value: string) {
 }
 const groups = [...new Set(MERCADOS.map((m) => m.group))];
 
-// ── Utilitário de fuso Brasília ──────────────────────────────────────────────
 function hojeNoBrasilISO(): string {
   return new Date()
     .toLocaleDateString("pt-BR", {
@@ -142,7 +141,7 @@ function hojeNoBrasilISO(): string {
     .join("-");
 }
 
-// ─── Seletor de data ─────────────────────────────────────────────────────────
+// ─── Seletor de data ──────────────────────────────────────────────────────────
 function SeletorData({
   dataSelecionada,
   onChange,
@@ -152,13 +151,11 @@ function SeletorData({
 }) {
   const hojeISO = hojeNoBrasilISO();
   const hoje = new Date(hojeISO + "T12:00:00");
-
   const dias = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(hojeISO + "T12:00:00");
     d.setDate(hoje.getDate() + i);
     return d;
   });
-
   return (
     <div className="flex gap-2 overflow-x-auto pb-1">
       {dias.map((d) => {
@@ -169,11 +166,7 @@ function SeletorData({
           <button
             key={iso}
             onClick={() => onChange(iso)}
-            className={`flex flex-col items-center px-3 py-2 rounded-xl border transition-all shrink-0 ${
-              isSel
-                ? "bg-green-600 border-green-500 text-white"
-                : "bg-gray-800 border-gray-700 text-gray-400 hover:border-green-700 hover:text-white"
-            }`}
+            className={`flex flex-col items-center px-3 py-2 rounded-xl border transition-all shrink-0 ${isSel ? "bg-green-600 border-green-500 text-white" : "bg-gray-800 border-gray-700 text-gray-400 hover:border-green-700 hover:text-white"}`}
           >
             <span className="text-[10px] uppercase font-semibold">
               {isHoje
@@ -193,7 +186,7 @@ function SeletorData({
   );
 }
 
-// ─── Card visual do jogo ─────────────────────────────────────────────────────
+// ─── Card visual do jogo ──────────────────────────────────────────────────────
 function JogoCard({
   jogo,
   selecionado,
@@ -207,13 +200,7 @@ function JogoCard({
   return (
     <button
       onClick={onSelect}
-      className={`w-full text-left rounded-xl border-2 transition-all p-3 ${
-        selecionado
-          ? "border-green-500 bg-green-950/30"
-          : encerrado
-            ? "border-gray-700 bg-gray-800/30 hover:border-yellow-700"
-            : "border-gray-700 bg-gray-800/50 hover:border-green-700"
-      }`}
+      className={`w-full text-left rounded-xl border-2 transition-all p-3 ${selecionado ? "border-green-500 bg-green-950/30" : encerrado ? "border-gray-700 bg-gray-800/30 hover:border-yellow-700" : "border-gray-700 bg-gray-800/50 hover:border-green-700"}`}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-col items-center gap-1 flex-1">
@@ -235,11 +222,7 @@ function JogoCard({
         </div>
         <div className="flex flex-col items-center gap-1">
           <span
-            className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
-              encerrado
-                ? "bg-gray-700 border-gray-600 text-gray-400"
-                : "bg-gray-900 border-gray-700 text-white"
-            }`}
+            className={`text-xs font-bold px-2 py-0.5 rounded-full border ${encerrado ? "bg-gray-700 border-gray-600 text-gray-400" : "bg-gray-900 border-gray-700 text-white"}`}
           >
             {jogo.horario}
           </span>
@@ -279,31 +262,87 @@ function JogoCard({
   );
 }
 
-const SelectMercado = ({
+// ─── Select mercado com opção "Outro" ─────────────────────────────────────────
+function SelectMercado({
   value,
   onChange,
 }: {
   value: string;
   onChange: (v: string) => void;
-}) => (
-  <select
-    value={value}
-    onChange={(e) => onChange(e.target.value)}
-    className="w-full bg-gray-800 border border-gray-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-600"
-  >
-    <option value="">Selecione o mercado...</option>
-    {groups.map((g) => (
-      <optgroup key={g} label={g}>
-        {MERCADOS.filter((m) => m.group === g).map((m) => (
-          <option key={m.value} value={m.value}>
-            {m.label}
-          </option>
-        ))}
-      </optgroup>
-    ))}
-  </select>
-);
+}) {
+  // Se o valor não está na lista pré-definida e não está vazio, está em modo livre
+  const isCustom = value !== "" && !MERCADOS.find((m) => m.value === value);
+  const [modoLivre, setModoLivre] = useState(isCustom);
+  const [textoLivre, setTextoLivre] = useState(isCustom ? value : "");
 
+  function entrarModoLivre() {
+    setModoLivre(true);
+    setTextoLivre("");
+    onChange("");
+  }
+
+  function voltarParaLista() {
+    setModoLivre(false);
+    setTextoLivre("");
+    onChange("");
+  }
+
+  if (modoLivre) {
+    return (
+      <div className="flex gap-2 items-center">
+        <Input
+          autoFocus
+          value={textoLivre}
+          onChange={(e) => {
+            setTextoLivre(e.target.value);
+            onChange(e.target.value);
+          }}
+          placeholder="Digite o mercado..."
+          className="bg-gray-800 border-gray-700 text-white text-sm focus:border-blue-600 flex-1"
+        />
+        <button
+          type="button"
+          onClick={voltarParaLista}
+          className="text-gray-500 hover:text-white text-xs border border-gray-700 hover:border-gray-500 rounded-lg px-2 py-2 transition-colors whitespace-nowrap"
+          title="Voltar para a lista"
+        >
+          ← Lista
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex gap-2 items-center">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="flex-1 bg-gray-800 border border-gray-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-600"
+      >
+        <option value="">Selecione o mercado...</option>
+        {groups.map((g) => (
+          <optgroup key={g} label={g}>
+            {MERCADOS.filter((m) => m.group === g).map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+      <button
+        type="button"
+        onClick={entrarModoLivre}
+        className="text-gray-500 hover:text-blue-400 text-xs border border-gray-700 hover:border-blue-700 rounded-lg px-2 py-2 transition-colors whitespace-nowrap"
+        title="Digitar mercado personalizado"
+      >
+        ✏️ Outro
+      </button>
+    </div>
+  );
+}
+
+// ─── Página ───────────────────────────────────────────────────────────────────
 export default function ApostasPage() {
   const [apostas, setApostas] = useState<Aposta[]>([]);
   const [filtro, setFiltro] = useState("todos");
@@ -311,7 +350,6 @@ export default function ApostasPage() {
   const [loading, setLoading] = useState(false);
   const [jogosEspn, setJogosEspn] = useState<JogoEspn[]>([]);
   const [loadingJogos, setLoadingJogos] = useState(false);
-  // CORREÇÃO: usa fuso de Brasília no estado inicial
   const [dataSelecionada, setDataSelecionada] = useState(hojeNoBrasilISO());
   const supabase = createClient();
 
@@ -342,7 +380,6 @@ export default function ApostasPage() {
   useEffect(() => {
     loadApostas();
   }, []);
-
   useEffect(() => {
     buscarJogos(dataSelecionada);
     setJogoSelecionado(null);
@@ -352,8 +389,7 @@ export default function ApostasPage() {
   async function buscarJogos(data: string) {
     setLoadingJogos(true);
     try {
-      const dataParam = data.replace(/-/g, "");
-      const res = await fetch(`/api/jogos?data=${dataParam}`);
+      const res = await fetch(`/api/jogos?data=${data.replace(/-/g, "")}`);
       const json = await res.json();
       setJogosEspn(json.jogos || []);
     } catch {
@@ -635,16 +671,15 @@ export default function ApostasPage() {
                         const jaExiste = jogosMultipla.some(
                           (j) => j.jogo === nomeJogo,
                         );
-                        if (jaExiste) {
+                        if (jaExiste)
                           setJogosMultipla((p) =>
                             p.filter((j) => j.jogo !== nomeJogo),
                           );
-                        } else {
+                        else
                           setJogosMultipla((p) => [
                             ...p.filter((j) => j.jogo !== ""),
                             { jogo: nomeJogo, odd: 1.5, mercados: [""] },
                           ]);
-                        }
                       }
                     }}
                   />
@@ -653,6 +688,7 @@ export default function ApostasPage() {
             )}
           </div>
 
+          {/* ── SIMPLES ── */}
           {aba === "simples" && jogoSelecionado && (
             <form
               onSubmit={handleSimples}
@@ -744,6 +780,7 @@ export default function ApostasPage() {
             </p>
           )}
 
+          {/* ── MÚLTIPLA ── */}
           {aba === "multipla" && (
             <form
               onSubmit={handleMultipla}
@@ -783,7 +820,7 @@ export default function ApostasPage() {
                               Mercados
                             </Label>
                             {jogoItem.mercados.map((m, mi) => (
-                              <div key={mi} className="flex gap-2">
+                              <div key={mi} className="flex gap-2 items-center">
                                 <div className="flex-1">
                                   <SelectMercado
                                     value={m}
@@ -918,6 +955,7 @@ export default function ApostasPage() {
         </CardContent>
       </Card>
 
+      {/* Filtros */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
           {[
@@ -950,6 +988,7 @@ export default function ApostasPage() {
         </Button>
       </div>
 
+      {/* Lista de apostas */}
       <div className="space-y-3">
         {apostasFiltradas.map((aposta) => (
           <Card key={aposta.id} className="bg-gray-900 border-gray-800">
