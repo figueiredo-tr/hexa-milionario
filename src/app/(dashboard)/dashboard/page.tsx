@@ -6,6 +6,7 @@ import GraficoBanca from "@/components/dashboard/GraficoBanca";
 import HeroBanner from "@/components/dashboard/HeroBanner";
 import BancaEditavel from "@/components/dashboard/BancaEditavel";
 import BancaInicialButton from "@/components/dashboard/BancaInicialButton";
+import MetasEditaveis from "@/components/dashboard/MetasEditaveis";
 import AllInResumo from "@/components/dashboard/AllInResumo";
 import AnalisesJogos from "@/components/dashboard/AnalisesJogos";
 
@@ -102,24 +103,35 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <HeroBanner />
 
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-white">
-            Olá, {profile?.username || "Apostador"} 👋
-          </h1>
-          <p className="text-gray-400 text-sm mt-0.5">
-            Sua banca rumo ao hexa 🇧🇷 · Copa do Mundo 2026
-          </p>
-        </div>
-        <div className="flex gap-2 items-center">
+      {/* Header */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-white">
+              Olá, {profile?.username || "Apostador"} 👋
+            </h1>
+            <p className="text-gray-400 text-sm mt-0.5">
+              Sua banca rumo ao hexa 🇧🇷 · Copa do Mundo 2026
+            </p>
+          </div>
           {pendentes > 0 && (
             <Badge className="bg-yellow-600/20 text-yellow-400 border border-yellow-800 text-xs px-3 py-1">
               ⏳ {pendentes} pendente{pendentes > 1 ? "s" : ""}
             </Badge>
           )}
+        </div>
+
+        {/* Banca + Metas na mesma linha */}
+        <div className="flex flex-wrap gap-2 items-center">
           <BancaInicialButton
             bancaInicial={profile?.banca_inicial || 0}
             bancaAtual={profile?.banca_atual || 0}
+          />
+          <MetasEditaveis
+            bancaInicial={profile?.banca_inicial || 0}
+            bancaAtual={profile?.banca_atual || 0}
+            metaDiaria={profile?.meta_diaria ?? null}
+            metaMensal={profile?.meta_mensal ?? null}
           />
         </div>
       </div>
@@ -149,7 +161,6 @@ export default async function DashboardPage() {
       </div>
 
       <AnalisesJogos userEmail={user?.email || ""} />
-
       <AllInResumo />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
