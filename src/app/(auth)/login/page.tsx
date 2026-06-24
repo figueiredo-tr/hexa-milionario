@@ -59,7 +59,7 @@ export default function LoginPage() {
       email,
       password: senha,
     });
-    if (error) setErro("Email ou senha incorretos");
+    if (error) setErro("E-mail ou senha incorretos. Verifique seus dados.");
     else router.push("/dashboard");
     setLoading(false);
   }
@@ -86,18 +86,32 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <Label htmlFor="senha">Senha</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label htmlFor="senha">Senha</Label>
+                <Link
+                  href="/esqueci-senha"
+                  className="text-xs text-gray-500 hover:text-yellow-400 transition-colors"
+                >
+                  Esqueci minha senha
+                </Link>
+              </div>
               <Input
                 id="senha"
                 type="password"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
-                className="bg-gray-800 border-gray-700 mt-1"
+                className="bg-gray-800 border-gray-700"
                 placeholder="••••••••"
                 required
               />
             </div>
-            {erro && <p className="text-red-500 text-sm">{erro}</p>}
+
+            {erro && (
+              <div className="bg-red-950/50 border border-red-800 rounded-lg px-3 py-2">
+                <p className="text-red-400 text-sm">{erro}</p>
+              </div>
+            )}
+
             <Button
               type="submit"
               className="w-full bg-green-600 hover:bg-green-700"
@@ -105,6 +119,7 @@ export default function LoginPage() {
             >
               {loading ? "Entrando..." : "Entrar"}
             </Button>
+
             <p className="text-center text-gray-400 text-sm">
               Não tem conta?{" "}
               <Link

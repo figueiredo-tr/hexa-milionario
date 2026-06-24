@@ -49,6 +49,7 @@ export default function CadastroPage() {
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [username, setUsername] = useState("");
   const [erro, setErro] = useState("");
+  const [sucesso, setSucesso] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
@@ -56,6 +57,7 @@ export default function CadastroPage() {
   async function handleCadastro(e: React.FormEvent) {
     e.preventDefault();
     setErro("");
+    setSucesso("");
 
     if (senha !== confirmarSenha) {
       setErro("As senhas não coincidem.");
@@ -65,26 +67,67 @@ export default function CadastroPage() {
       setErro("A senha deve ter pelo menos 6 caracteres.");
       return;
     }
+    if (username.trim().length < 3) {
+      setErro("O nome de usuário deve ter pelo menos 3 caracteres.");
+      return;
+    }
 
     setLoading(true);
+
+    // ✅ Verifica se username já existe
+    const { data: usernameExiste } = await supabase
+      .from("users_profile")
+      .select("id")
+      .eq("username", username.trim())
+      .single();
+
+    if (usernameExiste) {
+      setErro("Este nome de usuário já está em uso. Escolha outro.");
+      setLoading(false);
+      return;
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password: senha,
     });
+
     if (error) {
-      setErro(error.message);
+      // ✅ Trata erro de email já cadastrado
+      if (
+        error.message.toLowerCase().includes("already registered") ||
+        error.message.toLowerCase().includes("user already exists") ||
+        error.status === 422
+      ) {
+        setErro(
+          "Este e-mail já está cadastrado. Tente fazer login ou recuperar sua senha.",
+        );
+      } else {
+        setErro("Erro ao criar conta. Tente novamente.");
+      }
       setLoading(false);
       return;
     }
+
+    // ✅ Supabase às vezes retorna user mas com identities vazio (email já existe)
+    if (data.user && data.user.identities?.length === 0) {
+      setErro(
+        "Este e-mail já está cadastrado. Tente fazer login ou recuperar sua senha.",
+      );
+      setLoading(false);
+      return;
+    }
+
     if (data.user) {
       await supabase.from("users_profile").insert({
         user_id: data.user.id,
-        username,
+        username: username.trim(),
         banca_inicial: 0,
         banca_atual: 0,
       });
+      router.push("/dashboard");
     }
-    router.push("/dashboard");
+
     setLoading(false);
   }
 
@@ -130,7 +173,7 @@ export default function CadastroPage() {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 className="bg-gray-800 border-gray-700 mt-1"
-                placeholder="••••••••"
+                placeholder="Mínimo 6 caracteres"
                 required
               />
             </div>
@@ -146,7 +189,18 @@ export default function CadastroPage() {
                 required
               />
             </div>
-            {erro && <p className="text-red-500 text-sm">{erro}</p>}
+
+            {erro && (
+              <div className="bg-red-950/50 border border-red-800 rounded-lg px-3 py-2">
+                <p className="text-red-400 text-sm">{erro}</p>
+              </div>
+            )}
+            {sucesso && (
+              <div className="bg-green-950/50 border border-green-800 rounded-lg px-3 py-2">
+                <p className="text-green-400 text-sm">{sucesso}</p>
+              </div>
+            )}
+
             <Button
               type="submit"
               className="w-full bg-green-600 hover:bg-green-700"
@@ -154,6 +208,7 @@ export default function CadastroPage() {
             >
               {loading ? "Criando conta..." : "Criar conta"}
             </Button>
+
             <p className="text-center text-gray-400 text-sm">
               Já tem conta?{" "}
               <Link href="/login" className="text-yellow-500 hover:underline">
