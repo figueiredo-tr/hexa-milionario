@@ -594,7 +594,7 @@ export default function AnalisesJogos({ userEmail }: { userEmail: string }) {
 
           {/* Cards menores — clicáveis */}
           {menores.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {menores.map((jogo) => (
                 <JogoCardMenor
                   key={jogo.id}
