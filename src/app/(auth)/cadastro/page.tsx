@@ -35,33 +35,33 @@ const SELECOES = [
 ];
 
 const POS_ESQUERDA = [
-  { top: "4%", left: "1%" },
-  { top: "18%", left: "4%" },
-  { top: "32%", left: "1%" },
-  { top: "46%", left: "4%" },
-  { top: "60%", left: "1%" },
-  { top: "74%", left: "4%" },
-  { top: "88%", left: "1%" },
-  { top: "11%", left: "8%" },
-  { top: "25%", left: "8%" },
-  { top: "39%", left: "8%" },
-  { top: "53%", left: "8%" },
-  { top: "67%", left: "8%" },
+  { top: "6%", left: "14%" },
+  { top: "20%", left: "10%" },
+  { top: "34%", left: "14%" },
+  { top: "48%", left: "10%" },
+  { top: "62%", left: "14%" },
+  { top: "76%", left: "10%" },
+  { top: "90%", left: "14%" },
+  { top: "13%", left: "20%" },
+  { top: "27%", left: "20%" },
+  { top: "41%", left: "20%" },
+  { top: "55%", left: "20%" },
+  { top: "69%", left: "20%" },
 ];
 
 const POS_DIREITA = [
-  { top: "4%", right: "1%" },
-  { top: "18%", right: "4%" },
-  { top: "32%", right: "1%" },
-  { top: "46%", right: "4%" },
-  { top: "60%", right: "1%" },
-  { top: "74%", right: "4%" },
-  { top: "88%", right: "1%" },
-  { top: "11%", right: "8%" },
-  { top: "25%", right: "8%" },
-  { top: "39%", right: "8%" },
-  { top: "53%", right: "8%" },
-  { top: "67%", right: "8%" },
+  { top: "6%", right: "14%" },
+  { top: "20%", right: "10%" },
+  { top: "34%", right: "14%" },
+  { top: "48%", right: "10%" },
+  { top: "62%", right: "14%" },
+  { top: "76%", right: "10%" },
+  { top: "90%", right: "14%" },
+  { top: "13%", right: "20%" },
+  { top: "27%", right: "20%" },
+  { top: "41%", right: "20%" },
+  { top: "55%", right: "20%" },
+  { top: "69%", right: "20%" },
 ];
 
 function HexBandeira({
@@ -72,12 +72,12 @@ function HexBandeira({
   style: React.CSSProperties;
 }) {
   return (
-    <div style={{ position: "absolute", ...style, opacity: 0.45 }}>
+    <div style={{ position: "absolute", ...style, opacity: 0.5 }}>
       <div
         style={{
           position: "relative",
-          width: 36,
-          height: 36,
+          width: 52,
+          height: 52,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -85,12 +85,12 @@ function HexBandeira({
       >
         <svg
           viewBox="0 0 50 50"
-          style={{ position: "absolute", width: 36, height: 36 }}
+          style={{ position: "absolute", width: 52, height: 52 }}
         >
           <polygon
             points="25,2 47,14 47,36 25,48 3,36 3,14"
-            fill="rgba(255,255,255,0.05)"
-            stroke="rgba(255,255,255,0.20)"
+            fill="rgba(255,255,255,0.06)"
+            stroke="rgba(255,255,255,0.22)"
             strokeWidth="1.5"
           />
         </svg>
@@ -98,8 +98,8 @@ function HexBandeira({
           style={{
             position: "relative",
             zIndex: 1,
-            width: 22,
-            height: 22,
+            width: 32,
+            height: 32,
             overflow: "hidden",
             clipPath:
               "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)",
@@ -258,14 +258,14 @@ export default function CadastroPage() {
           position: "relative",
           zIndex: 10,
           width: "100%",
-          maxWidth: 400,
+          maxWidth: 420,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
         }}
       >
         {/* Logo */}
-        <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+        <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
           <div
             style={{
               display: "flex",
@@ -317,7 +317,6 @@ export default function CadastroPage() {
                 fontWeight: 900,
                 letterSpacing: "-0.5px",
                 color: "#fff",
-                fontFamily: "Inter, sans-serif",
               }}
             >
               Hexa<span style={{ color: "#4ade80" }}>Milionário</span>
@@ -337,14 +336,20 @@ export default function CadastroPage() {
         </div>
 
         {/* Badge + Título */}
-        <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: "1.25rem",
+            width: "100%",
+          }}
+        >
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               gap: 8,
-              marginBottom: 10,
+              marginBottom: 8,
             }}
           >
             <span
@@ -374,11 +379,12 @@ export default function CadastroPage() {
           </div>
           <h1
             style={{
-              fontSize: 36,
+              fontSize: 34,
               fontWeight: 900,
               color: "#fff",
-              margin: 0,
+              margin: "0 0 8px",
               lineHeight: 1.1,
+              textAlign: "center",
             }}
           >
             Rumo ao <span style={{ color: "#eab308" }}>Hexa</span>
@@ -387,8 +393,9 @@ export default function CadastroPage() {
             style={{
               color: "#6b7280",
               fontSize: 13,
-              marginTop: 8,
+              margin: 0,
               lineHeight: 1.6,
+              textAlign: "center",
             }}
           >
             Crie sua conta grátis e comece a competir no ranking dos apostadores
@@ -400,35 +407,30 @@ export default function CadastroPage() {
         <div
           style={{
             width: "100%",
-            background: "rgba(17,24,17,0.85)",
+            background: "rgba(17,24,17,0.90)",
             border: "1px solid rgba(255,255,255,0.08)",
             borderRadius: 16,
-            padding: "2rem",
-            backdropFilter: "blur(12px)",
-            boxShadow: "0 8px 40px rgba(0,0,0,0.5)",
+            padding: "1.75rem 2rem",
+            backdropFilter: "blur(16px)",
+            boxShadow: "0 8px 40px rgba(0,0,0,0.6)",
           }}
         >
-          <h2
-            style={{
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: 20,
-              marginBottom: 4,
-              marginTop: 0,
-            }}
-          >
-            Criar conta
-          </h2>
-          <p
-            style={{
-              color: "#6b7280",
-              fontSize: 13,
-              marginBottom: "1.5rem",
-              marginTop: 0,
-            }}
-          >
-            Grátis e sem cartão de crédito.
-          </p>
+          {/* Título centralizado */}
+          <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
+            <h2
+              style={{
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: 22,
+                margin: "0 0 4px",
+              }}
+            >
+              Criar conta
+            </h2>
+            <p style={{ color: "#6b7280", fontSize: 13, margin: 0 }}>
+              Grátis e sem cartão de crédito.
+            </p>
+          </div>
 
           <form
             onSubmit={handleCadastro}
@@ -546,12 +548,12 @@ export default function CadastroPage() {
           </div>
         </div>
 
-        {/* Stats embaixo */}
+        {/* Stats */}
         <div
           style={{
             display: "flex",
             gap: 32,
-            marginTop: "2rem",
+            marginTop: "1.75rem",
             justifyContent: "center",
           }}
         >
