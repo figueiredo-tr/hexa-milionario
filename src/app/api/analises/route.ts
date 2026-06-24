@@ -100,24 +100,21 @@ function traduzirTime(nome: string): string {
   return traducaoTimes[nome] || nome;
 }
 
-// Calcula força baseada na forma recente (ex: "WDLWW") com peso maior para jogos recentes
 function calcularForcaForma(forma: string): number {
   if (!forma || forma.length === 0) return 1.0;
   const resultados = forma.slice(-5).split("");
   let pontos = 0;
   let pesoTotal = 0;
   resultados.forEach((r, i) => {
-    const peso = i + 1; // mais recente = maior peso
+    const peso = i + 1;
     pesoTotal += peso;
     if (r === "W") pontos += 3 * peso;
     else if (r === "D") pontos += 1 * peso;
   });
   const maxPontos = 3 * pesoTotal;
-  // Escala: 0.65 (péssima forma) a 1.45 (excelente forma)
   return 0.65 + (pontos / maxPontos) * 0.8;
 }
 
-// Parseia record "V-E-D" e retorna stats
 function parseRecord(record: string) {
   const parts = (record || "0-0-0").split("-").map(Number);
   const v = parts[0] || 0,
@@ -231,10 +228,23 @@ export async function GET(request: Request) {
     if (eventos.length === 0)
       return NextResponse.json({ jogos: [], fonte: "sem_jogos" });
 
-    // Média de gols por time por jogo na Copa 2026 fase de grupos
+    // Filtra apenas jogos do dia atual no horário de Brasília
+    const hojeFormatado = new Date().toLocaleDateString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+    });
+    const eventosDoDia = eventos.filter((evento: any) => {
+      const dataJogo = new Date(evento.date).toLocaleDateString("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+      });
+      return dataJogo === hojeFormatado;
+    });
+
+    if (eventosDoDia.length === 0)
+      return NextResponse.json({ jogos: [], fonte: "sem_jogos" });
+
     const mediaGolsCopa = 1.35;
 
-    const jogosAnalisados = eventos.map((evento: any) => {
+    const jogosAnalisados = eventosDoDia.map((evento: any) => {
       const comp = evento.competitions?.[0];
       const home = comp?.competitors?.find((c: any) => c.homeAway === "home");
       const away = comp?.competitors?.find((c: any) => c.homeAway === "away");
@@ -252,17 +262,14 @@ export async function GET(request: Request) {
         timeZone: "America/Sao_Paulo",
       });
 
-      // Forma recente (campo "form" da ESPN, ex: "WDLWW")
       const formaHome = home?.form || "";
       const formaAway = away?.form || "";
       const forcaHome = calcularForcaForma(formaHome);
       const forcaAway = calcularForcaForma(formaAway);
 
-      // Record na Copa (ex: "1-1-0")
       const recordHome = parseRecord(home?.records?.[0]?.summary || "");
       const recordAway = parseRecord(away?.records?.[0]?.summary || "");
 
-      // Estatísticas de gols da Copa atual
       const homeStats = home?.statistics || [];
       const awayStats = away?.statistics || [];
       const getStat = (stats: any[], name: string) =>
@@ -272,27 +279,21 @@ export async function GET(request: Request) {
 
       const homeGolsMarcados = getStat(homeStats, "totalGoals");
       const awayGolsMarcados = getStat(awayStats, "totalGoals");
-      const homeShotsOnTarget = getStat(homeStats, "shotsOnTarget");
-      const awayShotsOnTarget = getStat(awayStats, "shotsOnTarget");
 
-      // Calcula gols esperados combinando múltiplas fontes
       let golsEsperadosCasa: number;
       let golsEsperadosFora: number;
 
       if (recordHome.jogos > 0 && homeGolsMarcados > 0) {
-        // Tem dados reais da Copa: média de gols * força da forma
         const mediaAtaqueCasa = homeGolsMarcados / recordHome.jogos;
         const mediaDefesaFora =
           recordAway.jogos > 0 && awayGolsMarcados > 0
             ? awayGolsMarcados / recordAway.jogos
             : mediaGolsCopa;
-        // Dixon-Coles simplificado
         golsEsperadosCasa =
           mediaAtaqueCasa *
           forcaHome *
           (mediaGolsCopa / Math.max(mediaDefesaFora * forcaAway, 0.4));
       } else {
-        // Sem dados: usa aproveitamento no torneio + forma
         const baseHome = mediaGolsCopa * (0.5 + recordHome.aproveitamento);
         golsEsperadosCasa = baseHome * forcaHome;
       }
@@ -313,7 +314,6 @@ export async function GET(request: Request) {
         golsEsperadosFora = baseFora * forcaAway;
       }
 
-      // Clamp valores razoáveis
       golsEsperadosCasa = Math.max(0.25, Math.min(4.5, golsEsperadosCasa));
       golsEsperadosFora = Math.max(0.25, Math.min(4.5, golsEsperadosFora));
 
