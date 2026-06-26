@@ -37,7 +37,7 @@ function TeamLogo({
   nome: string;
   size?: "sm" | "md" | "lg";
 }) {
-  const sizes = { sm: "w-6 h-6", md: "w-8 h-8", lg: "w-12 h-12" };
+  const sizes = { sm: "w-6 h-6", md: "w-8 h-8", lg: "w-10 h-10" };
   if (logo)
     return (
       <img
@@ -49,7 +49,7 @@ function TeamLogo({
         }}
       />
     );
-  return <span className={size === "lg" ? "text-4xl" : "text-2xl"}>⚽</span>;
+  return <span className="text-2xl">⚽</span>;
 }
 
 function EditModal({
@@ -215,8 +215,8 @@ function EditModal({
   );
 }
 
-// Card DESTAQUE (grande)
-function JogoCardDestaque({
+// ── Card uniforme ─────────────────────────────────────────────────────────────
+function JogoCard({
   jogo,
   isAdmin,
   onEdit,
@@ -226,245 +226,94 @@ function JogoCardDestaque({
   onEdit: () => void;
 }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-      <div className="bg-gray-800/50 px-6 py-5 relative">
+    <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden flex flex-col">
+      {/* Header */}
+      <div className="bg-gray-800/50 px-4 py-3 relative">
         {isAdmin && (
           <button
             onClick={onEdit}
-            className="absolute top-3 right-3 text-gray-500 hover:text-white text-xs bg-gray-700 px-2 py-1 rounded-md transition-colors"
+            className="absolute top-2 right-2 text-gray-500 hover:text-white text-xs bg-gray-700 px-2 py-0.5 rounded-md transition-colors z-10"
           >
             ✏️ Editar
           </button>
         )}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex flex-col items-center gap-2 flex-1">
-            <TeamLogo logo={jogo.logoHome} nome={jogo.casa} size="lg" />
-            <p className="text-white font-black text-base uppercase text-center">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-col items-center gap-1 flex-1">
+            <TeamLogo logo={jogo.logoHome} nome={jogo.casa} size="md" />
+            <p className="text-white font-black text-xs uppercase text-center leading-tight">
               {jogo.casa}
             </p>
-            <p className="text-gray-500 text-xs">
+            <p className="text-gray-500 text-[9px]">
               {jogo.golsEsperadosCasa} gols esp.
             </p>
           </div>
-          <div className="flex flex-col items-center gap-2">
-            <span className="bg-gray-900 text-white font-bold text-base px-4 py-1.5 rounded-full border border-gray-700">
+          <div className="flex flex-col items-center gap-1">
+            <span className="bg-gray-900 text-white font-bold text-xs px-3 py-1 rounded-full border border-gray-700">
               {jogo.horario}
             </span>
-            <span className="text-gray-500 text-xs">vs</span>
+            <span className="text-gray-600 text-[10px]">vs</span>
           </div>
-          <div className="flex flex-col items-center gap-2 flex-1">
-            <TeamLogo logo={jogo.logoAway} nome={jogo.fora} size="lg" />
-            <p className="text-white font-black text-base uppercase text-center">
+          <div className="flex flex-col items-center gap-1 flex-1">
+            <TeamLogo logo={jogo.logoAway} nome={jogo.fora} size="md" />
+            <p className="text-white font-black text-xs uppercase text-center leading-tight">
               {jogo.fora}
             </p>
-            <p className="text-gray-500 text-xs">
+            <p className="text-gray-500 text-[9px]">
               {jogo.golsEsperadosFora} gols esp.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="p-5 space-y-4">
+      {/* Body */}
+      <div className="p-3 space-y-2.5 flex-1 flex flex-col">
+        {/* Probabilidades resultado */}
         <div>
-          <p className="text-[10px] text-gray-500 uppercase tracking-widest text-center mb-3">
+          <p className="text-[9px] text-gray-500 uppercase tracking-widest text-center mb-2">
             Chance de cada resultado
           </p>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-1.5">
             {[
-              {
-                key: "casa",
-                label: jogo.casa,
-                prob: jogo.probCasa,
-                sub: `não sofre gol`,
-                subVal: `${jogo.naoSofreCasa}%`,
-              },
-              {
-                key: "empate",
-                label: "Empate",
-                prob: jogo.probEmpate,
-                sub: `c/ gols ${jogo.empateComGols}% · s/ ${jogo.empateSemGols}%`,
-                subVal: "",
-              },
-              {
-                key: "fora",
-                label: jogo.fora,
-                prob: jogo.probFora,
-                sub: `não sofre gol`,
-                subVal: `${jogo.naoSofreFora}%`,
-              },
-            ].map(({ key, label, prob, sub, subVal }) => {
+              { key: "casa", label: jogo.casa, prob: jogo.probCasa },
+              { key: "empate", label: "Empate", prob: jogo.probEmpate },
+              { key: "fora", label: jogo.fora, prob: jogo.probFora },
+            ].map(({ key, label, prob }) => {
               const isFav = jogo.favorito === key;
-              const cor = key === "empate" ? "yellow" : "green";
+              const corTexto =
+                key === "empate" ? "text-yellow-400" : "text-green-400";
+              const corBorda =
+                key === "empate"
+                  ? "border-yellow-600 bg-yellow-950/20"
+                  : "border-green-600 bg-green-950/20";
               return (
                 <div
                   key={key}
-                  className={`rounded-xl p-4 border-2 text-center ${isFav ? `border-${cor}-500 bg-${cor}-950/30` : "border-gray-700 bg-gray-800/40"}`}
+                  className={`rounded-xl p-2 border text-center ${isFav ? corBorda : "border-gray-700 bg-gray-800/40"}`}
                 >
                   {isFav && (
                     <span
-                      className={`block text-[9px] bg-${cor}-500 ${cor === "yellow" ? "text-black" : "text-white"} font-bold px-2 py-0.5 rounded-full mb-1 uppercase`}
+                      className={`block text-[8px] font-bold mb-0.5 uppercase ${key === "empate" ? "text-yellow-400" : "text-green-400"}`}
                     >
-                      Favorita
+                      Fav.
                     </span>
                   )}
                   <p
-                    className={`text-xs font-bold uppercase mb-1 ${isFav ? `text-${cor}-400` : "text-gray-300"}`}
+                    className={`text-[9px] uppercase truncate mb-0.5 ${isFav ? corTexto : "text-gray-400"}`}
                   >
                     {label}
                   </p>
                   <p
-                    className={`text-3xl font-black ${isFav ? `text-${cor}-400` : "text-white"}`}
+                    className={`text-lg font-black ${isFav ? corTexto : "text-white"}`}
                   >
                     {prob}%
                   </p>
-                  <p className="text-[10px] text-gray-500 mt-1">{sub}</p>
-                  {subVal && (
-                    <p className="text-[10px] text-gray-400">{subVal}</p>
-                  )}
                 </div>
               );
             })}
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-gray-800/40 rounded-xl p-3 text-center">
-            <p className="text-[10px] text-gray-500 uppercase mb-1">
-              Placar mais provável
-            </p>
-            <p className="text-white font-black text-xl">
-              {jogo.maisProvavel.placar}
-            </p>
-            <p className="text-gray-500 text-xs">{jogo.maisProvavel.prob}%</p>
-          </div>
-          <div className="bg-gray-800/40 rounded-xl p-3 text-center">
-            <p className="text-[10px] text-gray-500 uppercase mb-1">
-              Mais de 2.5 gols
-            </p>
-            <p className="text-white font-black text-xl">{jogo.mais25}%</p>
-          </div>
-          <div className="bg-gray-800/40 rounded-xl p-3 text-center">
-            <p className="text-[10px] text-gray-500 uppercase mb-1">
-              Ambas marcam
-            </p>
-            <p className="text-white font-black text-xl">{jogo.ambaMarcam}%</p>
-          </div>
-        </div>
-
-        {jogo.outrosProvaveis.length > 0 && (
-          <div className="border border-gray-700 rounded-xl p-3">
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest text-center mb-2">
-              Outros resultados prováveis
-            </p>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {jogo.outrosProvaveis.map((p, i) => (
-                <span
-                  key={i}
-                  className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg font-medium"
-                >
-                  {p.placar} <span className="text-gray-400">{p.prob}%</span>
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Card MENOR (compacto) — agora clicável para virar destaque
-function JogoCardMenor({
-  jogo,
-  isAdmin,
-  onEdit,
-  onSetDestaque,
-}: {
-  jogo: JogoAnalise;
-  isAdmin: boolean;
-  onEdit: () => void;
-  onSetDestaque: () => void;
-}) {
-  return (
-    <div
-      className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden cursor-pointer hover:border-green-700 hover:ring-1 hover:ring-green-700/40 transition-all group"
-      onClick={onSetDestaque}
-    >
-      <div className="bg-gray-800/50 px-4 py-3 relative">
-        {isAdmin && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
-            className="absolute top-2 right-2 text-gray-500 hover:text-white text-xs bg-gray-700 px-2 py-0.5 rounded-md transition-colors z-10"
-          >
-            ✏️ Editar
-          </button>
-        )}
-        {/* Hint de clique */}
-        <div className="absolute bottom-2 right-2 text-[9px] text-gray-600 group-hover:text-green-500 transition-colors pointer-events-none">
-          ↑ ver em destaque
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex flex-col items-center gap-1 flex-1">
-            <TeamLogo logo={jogo.logoHome} nome={jogo.casa} size="sm" />
-            <p className="text-white font-black text-xs uppercase text-center leading-tight">
-              {jogo.casa}
-            </p>
-            <p className="text-gray-500 text-[9px]">
-              {jogo.golsEsperadosCasa} gols esp.
-            </p>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="bg-gray-900 text-white font-bold text-xs px-2 py-1 rounded-full border border-gray-700">
-              {jogo.horario}
-            </span>
-          </div>
-          <div className="flex flex-col items-center gap-1 flex-1">
-            <TeamLogo logo={jogo.logoAway} nome={jogo.fora} size="sm" />
-            <p className="text-white font-black text-xs uppercase text-center leading-tight">
-              {jogo.fora}
-            </p>
-            <p className="text-gray-500 text-[9px]">
-              {jogo.golsEsperadosFora} gols esp.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-3 space-y-3">
-        <div className="grid grid-cols-3 gap-1.5">
-          {[
-            { key: "casa", label: jogo.casa, prob: jogo.probCasa },
-            { key: "empate", label: "Empate", prob: jogo.probEmpate },
-            { key: "fora", label: jogo.fora, prob: jogo.probFora },
-          ].map(({ key, label, prob }) => {
-            const isFav = jogo.favorito === key;
-            const cor = key === "empate" ? "text-yellow-400" : "text-green-400";
-            return (
-              <div
-                key={key}
-                className={`rounded-lg p-2 border text-center ${isFav ? "border-green-600 bg-green-950/20" : "border-gray-700 bg-gray-800/40"}`}
-              >
-                {isFav && (
-                  <span className="block text-[8px] text-green-400 font-bold mb-0.5 uppercase">
-                    Fav.
-                  </span>
-                )}
-                <p className="text-[9px] text-gray-400 uppercase truncate mb-0.5">
-                  {label}
-                </p>
-                <p
-                  className={`text-base font-black ${isFav ? cor : "text-white"}`}
-                >
-                  {prob}%
-                </p>
-              </div>
-            );
-          })}
-        </div>
-
+        {/* Stats secundários */}
         <div className="grid grid-cols-3 gap-1.5">
           <div className="bg-gray-800/40 rounded-lg p-2 text-center">
             <p className="text-[8px] text-gray-500 uppercase mb-0.5">Placar</p>
@@ -487,9 +336,10 @@ function JogoCardMenor({
           </div>
         </div>
 
+        {/* Outros placares */}
         {jogo.outrosProvaveis.length > 0 && (
-          <div className="flex flex-wrap gap-1 justify-center">
-            {jogo.outrosProvaveis.slice(0, 4).map((p, i) => (
+          <div className="flex flex-wrap gap-1 justify-center mt-auto pt-1">
+            {jogo.outrosProvaveis.slice(0, 5).map((p, i) => (
               <span
                 key={i}
                 className="bg-gray-800 text-white text-[10px] px-2 py-1 rounded-md font-medium"
@@ -504,20 +354,19 @@ function JogoCardMenor({
   );
 }
 
+// ── Página principal ──────────────────────────────────────────────────────────
 export default function AnalisesJogos({ userEmail }: { userEmail: string }) {
   const isAdmin = userEmail === ADMIN_EMAIL;
   const [jogos, setJogos] = useState<JogoAnalise[]>([]);
   const [loading, setLoading] = useState(true);
   const [gerando, setGerando] = useState(false);
   const [editando, setEditando] = useState<JogoAnalise | null>(null);
-  const [destaqueId, setDestaqueId] = useState<string | null>(null);
 
   async function carregar(forcar = false) {
     setLoading(true);
     const res = await fetch(`/api/analises${forcar ? "?forcar=1" : ""}`);
     const data = await res.json();
     setJogos(data.jogos || []);
-    setDestaqueId(null); // reseta destaque ao recarregar
     setLoading(false);
     setGerando(false);
   }
@@ -536,13 +385,6 @@ export default function AnalisesJogos({ userEmail }: { userEmail: string }) {
       body: JSON.stringify({ jogos: novos }),
     });
   }
-
-  // Determina qual é o destaque e quais são os menores
-  const destaqueIndex = destaqueId
-    ? jogos.findIndex((j) => j.id === destaqueId)
-    : 0;
-  const destaque = jogos[destaqueIndex >= 0 ? destaqueIndex : 0];
-  const menores = jogos.filter((j) => j.id !== destaque?.id);
 
   return (
     <div className="space-y-4">
@@ -582,30 +424,15 @@ export default function AnalisesJogos({ userEmail }: { userEmail: string }) {
           Nenhum jogo hoje para analisar.
         </div>
       ) : (
-        <div className="space-y-4">
-          {/* Card destaque */}
-          {destaque && (
-            <JogoCardDestaque
-              jogo={destaque}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {jogos.map((jogo) => (
+            <JogoCard
+              key={jogo.id}
+              jogo={jogo}
               isAdmin={isAdmin}
-              onEdit={() => setEditando(destaque)}
+              onEdit={() => setEditando(jogo)}
             />
-          )}
-
-          {/* Cards menores — clicáveis */}
-          {menores.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {menores.map((jogo) => (
-                <JogoCardMenor
-                  key={jogo.id}
-                  jogo={jogo}
-                  isAdmin={isAdmin}
-                  onEdit={() => setEditando(jogo)}
-                  onSetDestaque={() => setDestaqueId(jogo.id)}
-                />
-              ))}
-            </div>
-          )}
+          ))}
         </div>
       )}
 
